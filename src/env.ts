@@ -3,7 +3,13 @@ import { z } from 'zod'
 
 export const env = createEnv({
   server: {
-    SERVER_URL: z.string().url().optional(),
+    TURSO_CONNECTION_URL: z.string(),
+    TURSO_TOKEN: z.string(),
+    TURSO_BETTER_AUTH_CONNECTION_URL: z.string(),
+    TURSO_BETTER_AUTH_TOKEN: z.string(),
+    BETTER_AUTH_SECRET: z.string(),
+    GOOGLE_CLIENT_ID: z.string(),
+    GOOGLE_CLIENT_SECRET: z.string(),
   },
 
   /**

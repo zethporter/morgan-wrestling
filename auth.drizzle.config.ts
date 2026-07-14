@@ -4,11 +4,11 @@ import { defineConfig } from 'drizzle-kit'
 config({ path: ['.env.local', '.env'] })
 
 export default defineConfig({
-  out: './drizzle',
-  schema: './src/db/schema.ts',
+  schema: './src/auth/schema.ts',
+  out: './authMigrations',
   dialect: 'turso',
   dbCredentials: {
-    url: process.env.TURSO_CONNECTION_URL!,
-    authToken: process.env.TURSO_TOKEN!,
+    url: process.env.TURSO_BETTER_AUTH_CONNECTION_URL!,
+    authToken: process.env.TURSO_BETTER_AUTH_TOKEN!,
   },
 })

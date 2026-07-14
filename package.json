@@ -19,10 +19,16 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:pull": "drizzle-kit pull",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "auth:db:generate": "bun x auth@latest generate --output ./src/auth/schema.ts",
+    "auth:orm:generate": "drizzle-kit generate --config ./auth.drizzle.config.ts",
+    "auth:orm:migrate": "drizzle-kit migrate --config ./auth.drizzle.config.ts",
+    "auth:orm:push": "drizzle-kit push --config ./auth.drizzle.config.ts",
+    "auth:orm:pull": "drizzle-kit pull --config ./auth.drizzle.config.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.6.0",
+    "@better-auth/drizzle-adapter": "^1.6.23",
     "@cloudflare/vite-plugin": "^1.44.0",
     "@faker-js/faker": "^10.5.0",
     "@fontsource-variable/geist": "^5.2.9",
@@ -46,8 +52,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.4.0",
-    "drizzle-kit": "^0.31.10",
-    "drizzle-orm": "^1.0.0-rc.4-5d5b77c",
+    "drizzle-orm": "^1.0.0-rc.4",
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^1.24.0",
@@ -68,6 +73,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.3",
+    "@libsql/client": "^0.17.4",
     "@tailwindcss/typography": "^0.5.20",
     "@tanstack/devtools-vite": "latest",
     "@tanstack/router-cli": "^1.167.19",
@@ -79,6 +85,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.3",
     "dotenv": "^17.4.2",
+    "drizzle-kit": "^1.0.0-rc.4",
     "jsdom": "^29.1.1",
     "tsx": "^4.23.1",
     "typescript": "^7.0.2",
