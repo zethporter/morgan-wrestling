@@ -20,28 +20,19 @@
     "enabled": true,
     "indentStyle": "tab"
   },
-  "assist": { "actions": { "source": { "organizeImports": {
-    "level": "on",
-    "options": {
-      "identifierOrder": "lexicographic",
-      "groups": [
-        [
-          ":BUN:",
-          ":NODE:"
-        ],
-        ":BLANK_LINE:"
-      ]
-    }
-  } } } },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true
-    }
-  },
-  "javascript": {
-    "formatter": {
-      "quoteStyle": "single"
+      "nursery": {
+        "useSortedClasses": {
+          "level": "on",
+          "options": {
+            "attributes": ["classList"],
+            "functions": ["cn"]
+          }
+        }
+      }
     }
   }
 }
