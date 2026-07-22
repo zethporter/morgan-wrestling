@@ -20,7 +20,19 @@
     "enabled": true,
     "indentStyle": "tab"
   },
-  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "assist": { "actions": { "source": { "organizeImports": {
+    "level": "on",
+    "options": {
+      "identifierOrder": "lexicographic",
+      "groups": [
+        [
+          ":BUN:",
+          ":NODE:"
+        ],
+        ":BLANK_LINE:"
+      ]
+    }
+  } } } },
   "linter": {
     "enabled": true,
     "rules": {
