@@ -4,10 +4,17 @@ import { BubbleMenu, FloatingMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
 import { useMemo } from "react";
 import Heading from "./extensions/headings";
+import Subscript from "./extensions/subscript";
+import Superscript from "./extensions/superscript";
 import { TextEditorMenu } from "./menu";
 
 const TextEditor = () => {
   const editor = useEditor({
+    editorProps: {
+      attributes: {
+        class: "focus:outline-none focus:ring-0"
+      }
+    },
     extensions: [
       StarterKit.configure({
         paragraph: {
@@ -50,6 +57,8 @@ const TextEditor = () => {
       Heading.configure({
         levels: [1, 2, 3, 4, 5, 6],
       }),
+      Subscript,
+      Superscript,
     ], // define your extension array
     content: "<p>Hello World!</p>", // initial content
   });
@@ -62,7 +71,7 @@ const TextEditor = () => {
       <EditorContext.Provider value={providerValue}>
         <TextEditorMenu editor={editor} />
         <EditorContent
-          className="p-5 border border-secondary rounded-xl"
+          className="p-2 border border-secondary rounded-xl"
           editor={editor}
         />
         {/*<FloatingMenu editor={editor}>This is the floating menu</FloatingMenu>
