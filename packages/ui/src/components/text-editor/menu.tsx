@@ -19,7 +19,7 @@ import {
   SuperscriptIcon,
   UnderlineIcon,
 } from "lucide-react";
-import { cn } from "#/lib/utils";
+import { cn } from "../../lib/utils";
 import {
   Select,
   SelectContent,
@@ -27,7 +27,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../ui/select";
 import { Toggle } from "../ui/toggle";
 import type { Level } from "@tiptap/extension-heading";
 
