@@ -6,8 +6,8 @@ import { useMemo } from 'react';
 import Heading from './extensions/headings';
 import Subscript from './extensions/subscript';
 import Superscript from './extensions/superscript';
-import { TextEditorMenu } from './menu';
 import LivePreview from './live-preview';
+import { TextEditorMenu } from './menu';
 
 const TextEditor = () => {
 	const editor = useEditor({
@@ -25,12 +25,17 @@ const TextEditor = () => {
 				},
 				bulletList: {
 					HTMLAttributes: {
-						class: 'list-disc list-outside',
+						class: 'list-disc pl-6 inner-flex [&_li_p]:inline',
 					},
 				},
 				orderedList: {
 					HTMLAttributes: {
-						class: 'list-decimal list-inside',
+						class: 'list-decimal pl-6 inner-flex [&_li_p]:inline',
+					},
+				},
+				listItem: {
+					HTMLAttributes: {
+						class: 'dkdkd',
 					},
 				},
 				link: {
