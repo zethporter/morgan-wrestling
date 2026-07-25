@@ -28,7 +28,7 @@
         "useSortedClasses": {
           "level": "on",
           "options": {
-            "attributes": ["classList"],
+            "attributes": ["classList", "className", "class"],
             "functions": ["cn"]
           }
         }

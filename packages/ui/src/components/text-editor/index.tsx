@@ -7,6 +7,7 @@ import Heading from './extensions/headings';
 import Subscript from './extensions/subscript';
 import Superscript from './extensions/superscript';
 import { TextEditorMenu } from './menu';
+import LivePreview from './live-preview';
 
 const TextEditor = () => {
 	const editor = useEditor({
@@ -24,12 +25,12 @@ const TextEditor = () => {
 				},
 				bulletList: {
 					HTMLAttributes: {
-						class: 'list-disc',
+						class: 'list-disc list-outside',
 					},
 				},
 				orderedList: {
 					HTMLAttributes: {
-						class: 'list-decimal',
+						class: 'list-decimal list-inside',
 					},
 				},
 				link: {
@@ -67,18 +68,16 @@ const TextEditor = () => {
 	const providerValue = useMemo(() => ({ editor }), [editor]);
 
 	return (
-		<>
-			<EditorContext.Provider value={providerValue}>
-				<TextEditorMenu editor={editor} />
-				<EditorContent
-					className='p-2 border border-secondary rounded-xl'
-					editor={editor}
-				/>
-				{/*<FloatingMenu editor={editor}>This is the floating menu</FloatingMenu>
+		<EditorContext.Provider value={providerValue}>
+			<TextEditorMenu editor={editor} />
+			<EditorContent
+				className='p-2 border border-secondary rounded-xl'
+				editor={editor}
+			/>
+			{/*<FloatingMenu editor={editor}>This is the floating menu</FloatingMenu>
         <BubbleMenu editor={editor}>This is the bubble menu</BubbleMenu>*/}
-			</EditorContext.Provider>
-			<pre>{editor.getHTML()}</pre>
-		</>
+			<LivePreview editor={editor} />
+		</EditorContext.Provider>
 	);
 };
 
