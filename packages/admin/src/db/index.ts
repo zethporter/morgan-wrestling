@@ -1,9 +1,4 @@
-import { drizzle } from 'drizzle-orm/libsql'
-import { env } from '#/env'
+import { createAppDb } from "@morgan-wrestling/db/app";
+import { env } from "#/env";
 
-export const db = drizzle({
-  connection: {
-    url: env.TURSO_CONNECTION_URL,
-    authToken: env.TURSO_TOKEN,
-  },
-})
+export const db = createAppDb(env.TURSO_CONNECTION_URL, env.TURSO_TOKEN);

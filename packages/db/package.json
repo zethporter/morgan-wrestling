@@ -1,0 +1,24 @@
+{
+  "name": "@morgan-wrestling/db",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./app": "./src/app/index.ts",
+    "./app/schema": "./src/app/schema.ts"
+  },
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:pull": "drizzle-kit pull",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "drizzle-orm": "^1.0.0-rc.4-de6c356"
+  },
+  "devDependencies": {
+    "@libsql/client": "^0.17.4",
+    "drizzle-kit": "^1.0.0-rc.4-ca0f029",
+    "typescript": "^7.0.2"
+  }
+}
