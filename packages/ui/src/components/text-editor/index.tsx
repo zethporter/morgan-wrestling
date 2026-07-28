@@ -7,9 +7,9 @@ import Heading from './extensions/headings';
 import Subscript from './extensions/subscript';
 import Superscript from './extensions/superscript';
 import LivePreview from './live-preview';
-import { TextEditorMenu } from './menu';
+import { Toolbar } from './toolbar';
 
-const TextEditor = () => {
+const TextEditor = ({ content }: {content: string }) => {
 	const editor = useEditor({
 		editorProps: {
 			attributes: {
@@ -66,7 +66,7 @@ const TextEditor = () => {
 			Subscript,
 			Superscript,
 		], // define your extension array
-		content: '<p>Hello World!</p>', // initial content
+		content//: '<p>Hello World!</p>', // initial content
 	});
 
 	// Memoize the provider value to avoid unnecessary re-renders
@@ -74,14 +74,14 @@ const TextEditor = () => {
 
 	return (
 		<EditorContext.Provider value={providerValue}>
-			<TextEditorMenu editor={editor} />
+			<Toolbar editor={editor} />
 			<EditorContent
 				className='p-2 border border-secondary rounded-xl'
 				editor={editor}
 			/>
 			{/*<FloatingMenu editor={editor}>This is the floating menu</FloatingMenu>
         <BubbleMenu editor={editor}>This is the bubble menu</BubbleMenu>*/}
-			<LivePreview editor={editor} />
+			<LivePreview />
 		</EditorContext.Provider>
 	);
 };

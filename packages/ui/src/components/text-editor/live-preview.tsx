@@ -1,13 +1,17 @@
-import type { Editor } from '@tiptap/react';
-import { useEditorState } from '@tiptap/react';
+import { useCurrentEditor, useEditorState } from '@tiptap/react';
 
-const LivePreview = ({ editor }: { editor: Editor }) => {
+const LivePreview = () => {
+	const { editor } = useCurrentEditor();
 	const state = useEditorState({
 		editor,
 		selector: (ctx) => ({
-			html: ctx.editor.getHTML()
+			html: ctx?.editor?.getHTML() ?? '',
 		}),
 	});
+
+	if (!editor || !state) {
+		return null;
+	}
 
 	return (
 		<div>
