@@ -1,6 +1,6 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { StrikethroughIcon } from 'lucide-react';
+import { QuoteIcon } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { Skeleton } from '../../ui/skeleton';
 import { Toggle } from '../../ui/toggle';
@@ -22,8 +22,8 @@ export const StrikeToggle = ({ size }: VariantProps<typeof italicVariants>) => {
 	const editorState = useEditorState({
 		editor,
 		selector: ({ editor }) => ({
-			isStrikethrough: editor?.isActive('strike') ?? false,
-			canToggleStrike: editor?.can().toggleStrike(),
+			isBlockquote: editor?.isActive('blockquote') ?? false,
+			canToggleBlockquote: editor?.can().toggleBlockquote(),
 		}),
 	});
 
@@ -34,13 +34,13 @@ export const StrikeToggle = ({ size }: VariantProps<typeof italicVariants>) => {
 	return (
 		<Toggle
 			size={size}
-			pressed={editorState.isStrikethrough}
-			disabled={!editorState.canToggleStrike}
-			onClick={() => editor.chain().focus().toggleStrike().run()}
+			pressed={editorState.isBlockquote}
+			disabled={!editorState.canToggleBlockquote}
+			onClick={() => editor.chain().focus().toggleBlockquote().run()}
 			variant='outline'
 			aria-label='toggle-italic'
 		>
-			<StrikethroughIcon />
+			<QuoteIcon />
 		</Toggle>
 	);
 };

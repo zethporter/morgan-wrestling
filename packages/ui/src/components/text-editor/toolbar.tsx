@@ -24,6 +24,7 @@ import { Toggle } from '../ui/toggle';
 import { BoldToggle } from './tb-components/bold-toggle';
 import { HeadingSelect } from './tb-components/heading';
 import { ItalicToggle } from './tb-components/italic-toggle';
+import { StrikeToggle } from './tb-components/strike-toggle';
 import { UnderlineToggle } from './tb-components/underline-toggle';
 
 export function Toolbar({ editor }: { editor: Editor }) {
@@ -57,9 +58,7 @@ export function Toolbar({ editor }: { editor: Editor }) {
 				<BoldToggle />
 				<UnderlineToggle />
 				<ItalicToggle />
-				<Toggle variant='outline' aria-label='toggle-strikethrough'>
-					<StrikethroughIcon />
-				</Toggle>
+				<StrikeToggle />
 				<Toggle variant='outline' aria-label='toggle-quote'>
 					<QuoteIcon />
 				</Toggle>

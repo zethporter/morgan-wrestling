@@ -3,13 +3,14 @@ import { EditorContent, EditorContext, useEditor } from '@tiptap/react';
 import { BubbleMenu, FloatingMenu } from '@tiptap/react/menus';
 import StarterKit from '@tiptap/starter-kit';
 import { useMemo } from 'react';
+import Blockquote from './extensions/blockquote';
 import Heading from './extensions/headings';
 import Subscript from './extensions/subscript';
 import Superscript from './extensions/superscript';
 import LivePreview from './live-preview';
 import { Toolbar } from './toolbar';
 
-const TextEditor = ({ content }: {content: string }) => {
+const TextEditor = ({ content }: { content: string }) => {
 	const editor = useEditor({
 		editorProps: {
 			attributes: {
@@ -59,14 +60,16 @@ const TextEditor = ({ content }: {content: string }) => {
 					},
 				},
 				heading: false,
+				blockquote: false,
 			}),
 			Heading.configure({
 				levels: [1, 2, 3, 4, 5, 6],
 			}),
 			Subscript,
 			Superscript,
+			Blockquote,
 		], // define your extension array
-		content//: '<p>Hello World!</p>', // initial content
+		content, //: '<p>Hello World!</p>', // initial content
 	});
 
 	// Memoize the provider value to avoid unnecessary re-renders
