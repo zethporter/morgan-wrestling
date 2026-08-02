@@ -1,7 +1,7 @@
 {
   "name": "morgan-wrestling",
   "private": true,
-  "workspaces": ["packages/*"],
+  "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "check": "biome check",
     "format": "biome format",

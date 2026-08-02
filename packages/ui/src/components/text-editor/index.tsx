@@ -1,6 +1,6 @@
 // src/Tiptap.tsx
 import { EditorContent, EditorContext, useEditor } from '@tiptap/react';
-import { BubbleMenu, FloatingMenu } from '@tiptap/react/menus';
+// import { BubbleMenu, FloatingMenu } from '@tiptap/react/menus';
 import StarterKit from '@tiptap/starter-kit';
 import { useMemo } from 'react';
 import Blockquote from './extensions/blockquote';
