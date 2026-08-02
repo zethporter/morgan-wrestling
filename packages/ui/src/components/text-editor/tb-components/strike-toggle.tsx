@@ -1,9 +1,9 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import { Skeleton } from '@ui/components/ui/skeleton';
+import { Toggle } from '@ui/components/ui/toggle';
+import { cn } from '@ui/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { StrikethroughIcon } from 'lucide-react';
-import { cn } from '../../../lib/utils';
-import { Skeleton } from '../../ui/skeleton';
-import { Toggle } from '../../ui/toggle';
 
 const italicVariants = cva('', {
 	variants: {
