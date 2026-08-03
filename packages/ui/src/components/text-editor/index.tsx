@@ -9,6 +9,7 @@ import Subscript from './extensions/subscript';
 import Superscript from './extensions/superscript';
 import LivePreview from './live-preview';
 import { Toolbar } from './toolbar';
+import Highlight from './extensions/highlight';
 
 const TextEditor = ({ content }: { content: string }) => {
 	const editor = useEditor({
@@ -68,6 +69,7 @@ const TextEditor = ({ content }: { content: string }) => {
 			Subscript,
 			Superscript,
 			Blockquote,
+			Highlight
 		], // define your extension array
 		content, //: '<p>Hello World!</p>', // initial content
 	});

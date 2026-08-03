@@ -26,6 +26,8 @@ import { HeadingSelect } from './tb-components/heading';
 import { ItalicToggle } from './tb-components/italic-toggle';
 import { StrikeToggle } from './tb-components/strike-toggle';
 import { UnderlineToggle } from './tb-components/underline-toggle';
+import { HighlightPicker } from './tb-components/highlight-picker';
+import { QuoteToggle } from './tb-components/quote-toggle';
 
 export function Toolbar({ editor }: { editor: Editor }) {
 	const editorState = useEditorState({
@@ -59,12 +61,8 @@ export function Toolbar({ editor }: { editor: Editor }) {
 				<UnderlineToggle />
 				<ItalicToggle />
 				<StrikeToggle />
-				<Toggle variant='outline' aria-label='toggle-quote'>
-					<QuoteIcon />
-				</Toggle>
-				<Toggle variant='outline' aria-label='toggle-highlight'>
-					<HighlighterIcon />
-				</Toggle>
+				<QuoteToggle />
+				<HighlightPicker />
 				<Toggle variant='outline' aria-label='toggle-subscript'>
 					<SubscriptIcon />
 				</Toggle>
