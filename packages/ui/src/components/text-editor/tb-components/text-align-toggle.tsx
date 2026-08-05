@@ -1,45 +1,71 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
+import { Skeleton } from '@ui/components/ui/skeleton';
+import { ToggleGroup, ToggleGroupItem } from '@ui/components/ui/toggle-group';
+import { cn } from '@ui/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '../../../lib/utils';
-import { Skeleton } from '../../ui/skeleton';
-import { Toggle } from '../../ui/toggle';
+import { TextAlignCenterIcon, TextAlignEndIcon, TextAlignStartIcon } from 'lucide-react';
+import { useMemo } from 'react';
 
-const boldVariants = cva('', {
-	variants: {
-		size: {
-			default: 'w-9 h-9',
-			sm: 'w-8 h-8',
-		},
-	},
-	defaultVariants: {
-		size: 'default',
-	},
+const textAlignVariants = cva('', {
+  variants: {
+    size: {
+      default: 'w-9 h-9',
+      sm: 'w-8 h-8',
+    },
+  },
+  defaultVariants: {
+    size: 'default',
+  },
 });
 
-export const BoldToggle = ({ size }: VariantProps<typeof boldVariants>) => {
-	const { editor } = useCurrentEditor();
-	const editorState = useEditorState({
-		editor,
-		selector: ({ editor }) => ({
-			isBold: editor?.isActive('bold') ?? false,
-			canToggleBold: editor?.can().toggleBold(),
-		}),
-	});
+export const TextAlignToggle = ({ size }: VariantProps<typeof textAlignVariants>) => {
+  const { editor } = useCurrentEditor();
+  const editorState = useEditorState({
+    editor,
+    selector: ({ editor }) => ({
+      isLeft: editor?.isActive({ textAlign: 'left' }),
+      isCenter: editor?.isActive({ textAlign: 'center' }),
+      isRight: editor?.isActive({ textAlign: 'right' }),
+    }),
+  });
 
-	if (!editor || !editorState) {
-		return <Skeleton className={cn(boldVariants({ size }))} />;
-	}
+  const alignment = useMemo(() => {
+    if (editorState?.isLeft) return 'left';
+    if (editorState?.isCenter) return 'center';
+    if (editorState?.isRight) return 'right';
+    return 'left';
+  }, [editorState?.isLeft, editorState?.isCenter, editorState?.isRight])
 
-	return (
-		<Toggle
-			size={size}
-			pressed={editorState.isBold}
-			disabled={!editorState.canToggleBold}
-			onClick={() => editor.chain().focus().toggleBold().run()}
-			variant='outline'
-			aria-label='toggle-bold'
-		>
-			<BoldIcon />
-		</Toggle>
-	);
+  if (!editor || !editorState) {
+    return <Skeleton className={cn(textAlignVariants({ size }))} />;
+  }
+
+  return (
+    <ToggleGroup
+      value={[alignment]}
+      onValueChange={(value) => editor.chain().focus().toggleTextAlign(value[0] ?? 'left').run()}
+      size={size}
+      variant='outline'
+      spacing={1}
+    >
+      <ToggleGroupItem
+        value='left'
+        aria-label='seft-left-align'
+      >
+        <TextAlignStartIcon />
+      </ToggleGroupItem>
+      <ToggleGroupItem
+        value='center'
+        aria-label='set-center-align'
+      >
+        <TextAlignCenterIcon />
+      </ToggleGroupItem>
+      <ToggleGroupItem
+        value='right'
+        aria-label='set-right-align'
+      >
+        <TextAlignEndIcon />
+      </ToggleGroupItem>
+    </ToggleGroup>
+  );
 };
