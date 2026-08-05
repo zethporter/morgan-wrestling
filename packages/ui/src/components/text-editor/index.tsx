@@ -5,11 +5,12 @@ import StarterKit from '@tiptap/starter-kit';
 import { useMemo } from 'react';
 import Blockquote from './extensions/blockquote';
 import Heading from './extensions/headings';
+import Highlight from './extensions/highlight';
 import Subscript from './extensions/subscript';
 import Superscript from './extensions/superscript';
+import TextAlign from './extensions/text-align';
 import LivePreview from './live-preview';
 import { Toolbar } from './toolbar';
-import Highlight from './extensions/highlight';
 
 const TextEditor = ({ content }: { content: string }) => {
 	const editor = useEditor({
@@ -22,7 +23,7 @@ const TextEditor = ({ content }: { content: string }) => {
 			StarterKit.configure({
 				paragraph: {
 					HTMLAttributes: {
-						class: 'text-md',
+						class: 'text-md w-full',
 					},
 				},
 				bulletList: {
@@ -65,11 +66,15 @@ const TextEditor = ({ content }: { content: string }) => {
 			}),
 			Heading.configure({
 				levels: [1, 2, 3, 4, 5, 6],
+				HTMLAttributes: {
+					class: 'h-full',
+				},
 			}),
 			Subscript,
 			Superscript,
 			Blockquote,
-			Highlight
+			Highlight,
+			TextAlign,
 		], // define your extension array
 		content, //: '<p>Hello World!</p>', // initial content
 	});
