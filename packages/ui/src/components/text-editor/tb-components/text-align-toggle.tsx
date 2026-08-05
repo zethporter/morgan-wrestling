@@ -1,6 +1,5 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { BoldIcon } from 'lucide-react';
 import { cn } from '../../../lib/utils';
 import { Skeleton } from '../../ui/skeleton';
 import { Toggle } from '../../ui/toggle';
