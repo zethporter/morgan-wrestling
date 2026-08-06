@@ -1,10 +1,10 @@
-import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "@better-auth/drizzle-adapter";
+import { betterAuth } from "better-auth";
 import { adminClient } from "better-auth/client/plugins";
 import { admin, oneTap, organization, twoFactor } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
-import { ac, manager, user, guest } from "./permissions";
 import type { createAuthDb } from "./db";
+import { ac, guest, manager, user } from "./permissions";
 
 export type AuthPlugin = Parameters<typeof betterAuth>[0]["plugins"][number];
 

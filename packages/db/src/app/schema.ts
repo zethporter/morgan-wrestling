@@ -1,5 +1,5 @@
-import { sqliteTable, integer, text } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
+import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import { createInsertSchema, createSelectSchema } from "drizzle-orm/zod";
 
 export const calendars = sqliteTable("calendars", {
@@ -96,6 +96,7 @@ export const teamPages = sqliteTable("team_pages", {
   title: text().notNull(),
   sequenceNumber: integer("sequence_number").notNull(),
   content: text(),
+  contentMetadata: text('content_metadata'),
   createdAt: integer("created_at", { mode: "timestamp" }).default(
     sql`(unixepoch())`,
   ),
