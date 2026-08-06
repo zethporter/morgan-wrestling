@@ -3,7 +3,7 @@ import { Button } from "@morgan-wrestling/ui/components/ui/button";
 import { Card, CardAction, CardContent } from "@morgan-wrestling/ui/components/ui/card";
 import Tiptap from "@morgan-wrestling/ui/components/text-editor";
 
-export const Route = createFileRoute("/")({ component: Home });
+export const Route = createFileRoute("/_protected/")({ component: Home });
 
 function Home() {
   return (
