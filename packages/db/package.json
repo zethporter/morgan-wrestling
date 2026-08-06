@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./app": "./src/app/index.ts",
-    "./app/schema": "./src/app/schema.ts"
+    ".": "./src/db/index.ts",
+    "./schema": "./src/db/schema.ts"
   },
   "scripts": {
     "db:generate": "drizzle-kit generate",
@@ -17,7 +17,8 @@
     "@tursodatabase/serverless": "^1.4.0",
     "better-sqlite3": "^13.0.3",
     "drizzle-kit": "^1.0.0-rc.4",
-    "drizzle-orm": "^1.0.0-rc.4"
+    "drizzle-orm": "^1.0.0-rc.4",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@libsql/client": "^0.17.4",

@@ -88,6 +88,7 @@
         "better-sqlite3": "^13.0.3",
         "drizzle-kit": "^1.0.0-rc.4",
         "drizzle-orm": "^1.0.0-rc.4",
+        "zod": "^4.4.3",
       },
       "devDependencies": {
         "@libsql/client": "^0.17.4",
