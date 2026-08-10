@@ -14,10 +14,10 @@
     "auth:orm:pull": "drizzle-kit pull"
   },
   "dependencies": {
-    "@better-auth/drizzle-adapter": "^1.6.23",
-    "better-auth": "^1.6.23",
-    "drizzle-kit": "^1.0.0-rc.4",
-    "drizzle-orm": "^1.0.0-rc.4"
+    "@better-auth/drizzle-adapter": "^1.6.26",
+    "better-auth": "^1.6.26",
+    "drizzle-kit": "1.0.0-rc.4",
+    "drizzle-orm": "1.0.0-rc.4"
   },
   "devDependencies": {
     "@libsql/client": "^0.17.4",

@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
-import { createInsertSchema, createSelectSchema } from "drizzle-orm/zod";
+import { createInsertSchema, createSelectSchema, createUpdateSchema } from "drizzle-orm/zod";
 
 export const calendars = sqliteTable("calendars", {
   id: text({ mode: "text" }).primaryKey(),
@@ -74,6 +74,7 @@ export const teams = sqliteTable("teams", {
   name: text().notNull(),
   normalizedName: text("normalized_name").notNull(),
   homeContent: text("home_content"),
+  homeContentMetadata: text("home_content_metadata"),
   defaultCalendarId: text("default_calendar_id").references(
     () => calendars.id,
     {
@@ -81,7 +82,11 @@ export const teams = sqliteTable("teams", {
     },
   ),
 });
-export const teamInsertSchema = createInsertSchema(teams);
+export const teamInsertSchema = createInsertSchema(teams, {
+  id: (schema) => schema.optional(),
+  normalizedName: (schema) => schema.optional(),
+});
+export const teamUpdateSchema = createUpdateSchema(teams);
 export const teamSelectSchema = createSelectSchema(teams);
 
 export const teamPages = sqliteTable("team_pages", {
