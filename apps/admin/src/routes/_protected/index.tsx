@@ -4,7 +4,7 @@ import { Card, CardAction, CardContent } from "@morgan-wrestling/ui/components/u
 import { mergeForm, useForm, useSelector, useTransform } from "@tanstack/react-form-start";
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { newTeamFormOpts } from "#/form-options/teams";
+import { newTeamFormOps } from "#/form-options/teams";
 import { getFormDataFromServer } from "#/lib/team-fns";
 
 
@@ -18,14 +18,14 @@ export const Route = createFileRoute("/_protected/")({
 function Home() {
   const { state } = Route.useLoaderData();
   const form = useForm({
-    ...newTeamFormOpts,
+    ...newTeamFormOps,
     transform: useTransform((baseForm) => mergeForm(baseForm, state), [state])
   })
 
   const formErrors = useSelector(form.store, (formState) => formState.errors)
 
   return (
-    <form action={handleForm.url} method='post' encType={'multipart/form-data'}>
+    <form>
 
     </form>
   )
