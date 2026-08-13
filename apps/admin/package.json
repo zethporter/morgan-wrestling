@@ -28,6 +28,7 @@
     "@tanstack/react-form": "^1.33.3",
     "@tanstack/react-form-devtools": "^0.2.32",
     "@tanstack/react-form-start": "^1.33.3",
+    "@tanstack/react-hotkeys": "^0.10.0",
     "@tanstack/react-query": "latest",
     "@tanstack/react-query-devtools": "latest",
     "@tanstack/react-router": "latest",

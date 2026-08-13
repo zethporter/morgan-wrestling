@@ -11,7 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as ProtectedIndexRouteImport } from './routes/_protected/index'
+import { Route as ProtectedLayoutRouteImport } from './routes/_protected/_layout'
+import { Route as ProtectedLayoutIndexRouteImport } from './routes/_protected/_layout/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const ProtectedRoute = ProtectedRouteImport.update({
@@ -23,10 +24,14 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProtectedIndexRoute = ProtectedIndexRouteImport.update({
+const ProtectedLayoutRoute = ProtectedLayoutRouteImport.update({
+  id: '/_layout',
+  getParentRoute: () => ProtectedRoute,
+} as any)
+const ProtectedLayoutIndexRoute = ProtectedLayoutIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => ProtectedRoute,
+  getParentRoute: () => ProtectedLayoutRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
@@ -35,28 +40,35 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof ProtectedIndexRoute
+  '/': typeof ProtectedLayoutIndexRoute
   '/login': typeof LoginRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof ProtectedLayoutIndexRoute
   '/login': typeof LoginRoute
-  '/': typeof ProtectedIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_protected': typeof ProtectedRouteWithChildren
   '/login': typeof LoginRoute
-  '/_protected/': typeof ProtectedIndexRoute
+  '/_protected/_layout': typeof ProtectedLayoutRouteWithChildren
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/_protected/_layout/': typeof ProtectedLayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths: '/' | '/login' | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/login' | '/' | '/api/auth/$'
-  id: '__root__' | '/_protected' | '/login' | '/_protected/' | '/api/auth/$'
+  to: '/' | '/login' | '/api/auth/$'
+  id:
+    | '__root__'
+    | '/_protected'
+    | '/login'
+    | '/_protected/_layout'
+    | '/api/auth/$'
+    | '/_protected/_layout/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -81,12 +93,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_protected/': {
-      id: '/_protected/'
+    '/_protected/_layout': {
+      id: '/_protected/_layout'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof ProtectedLayoutRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
+    '/_protected/_layout/': {
+      id: '/_protected/_layout/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof ProtectedIndexRouteImport
-      parentRoute: typeof ProtectedRoute
+      preLoaderRoute: typeof ProtectedLayoutIndexRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -98,12 +117,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ProtectedLayoutRouteChildren {
+  ProtectedLayoutIndexRoute: typeof ProtectedLayoutIndexRoute
+}
+
+const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
+  ProtectedLayoutIndexRoute: ProtectedLayoutIndexRoute,
+}
+
+const ProtectedLayoutRouteWithChildren = ProtectedLayoutRoute._addFileChildren(
+  ProtectedLayoutRouteChildren,
+)
+
 interface ProtectedRouteChildren {
-  ProtectedIndexRoute: typeof ProtectedIndexRoute
+  ProtectedLayoutRoute: typeof ProtectedLayoutRouteWithChildren
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
-  ProtectedIndexRoute: ProtectedIndexRoute,
+  ProtectedLayoutRoute: ProtectedLayoutRouteWithChildren,
 }
 
 const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(

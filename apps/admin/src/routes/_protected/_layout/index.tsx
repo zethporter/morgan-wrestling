@@ -3,31 +3,28 @@ import { Button } from "@morgan-wrestling/ui/components/ui/button";
 import { Card, CardAction, CardContent } from "@morgan-wrestling/ui/components/ui/card";
 import { mergeForm, useForm, useSelector, useTransform } from "@tanstack/react-form-start";
 import { createFileRoute } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
-import { newTeamFormOps } from "#/form-options/teams";
-import { getFormDataFromServer } from "#/lib/team-fns";
+// import { newTeamFormOps } from "#/form-options/teams";
+// import { getFormDataFromServer } from "#/lib/team-fns";
 
 
-export const Route = createFileRoute("/_protected/")({
-  loader: async () => ({
-    state: await getFormDataFromServer()
-  }),
+export const Route = createFileRoute("/_protected/_layout/")({
+  // loader: async () => ({
+  //   state: await getFormDataFromServer()
+  // }),
   component: Home
 });
 
 function Home() {
-  const { state } = Route.useLoaderData();
-  const form = useForm({
-    ...newTeamFormOps,
-    transform: useTransform((baseForm) => mergeForm(baseForm, state), [state])
-  })
+  // const { state } = Route.useLoaderData();
+  // const form = useForm({
+  //   ...newTeamFormOps,
+  //   transform: useTransform((baseForm) => mergeForm(baseForm, state), [state])
+  // })
 
-  const formErrors = useSelector(form.store, (formState) => formState.errors)
+  // const formErrors = useSelector(form.store, (formState) => formState.errors)
 
   return (
-    <form>
-
-    </form>
+    <div>main stuff</div>
   )
 
   // return (
