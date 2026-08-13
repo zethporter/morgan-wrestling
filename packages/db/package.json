@@ -1,0 +1,28 @@
+{
+  "name": "@morgan-wrestling/db",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/db/index.ts",
+    "./schema": "./src/db/schema.ts"
+  },
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push",
+    "db:pull": "drizzle-kit pull",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@tursodatabase/serverless": "^1.4.0",
+    "better-sqlite3": "^13.0.3",
+    "drizzle-kit": "1.0.0-rc.4",
+    "drizzle-orm": "1.0.0-rc.4",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@libsql/client": "^0.17.4",
+    "@types/bun": "^1.3.14",
+    "typescript": "^7.0.2"
+  }
+}

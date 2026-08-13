@@ -1,0 +1,27 @@
+{
+  "name": "@morgan-wrestling/auth",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema.ts"
+  },
+  "scripts": {
+    "auth:db:generate": "bun x auth@v1.7.0-rc.1 generate --config ./src/config.ts --output ./src/schema.ts",
+    "auth:orm:generate": "drizzle-kit generate",
+    "auth:orm:migrate": "drizzle-kit migrate",
+    "auth:orm:push": "drizzle-kit push",
+    "auth:orm:pull": "drizzle-kit pull"
+  },
+  "dependencies": {
+    "@better-auth/drizzle-adapter": "^1.6.26",
+    "better-auth": "^1.6.26",
+    "drizzle-kit": "1.0.0-rc.4",
+    "drizzle-orm": "1.0.0-rc.4"
+  },
+  "devDependencies": {
+    "@libsql/client": "^0.17.4",
+    "@types/bun": "^1.3.14",
+    "typescript": "^7.0.2"
+  }
+}

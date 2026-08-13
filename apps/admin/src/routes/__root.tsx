@@ -1,0 +1,70 @@
+import { ThemeProvider } from '@morgan-wrestling/ui/components/theme-provider';
+import { TooltipProvider } from '@morgan-wrestling/ui/components/ui/tooltip';
+import { TanStackDevtools } from '@tanstack/react-devtools';
+import { hotkeysDevtoolsPlugin } from '@tanstack/react-hotkeys-devtools';
+import type { QueryClient } from '@tanstack/react-query';
+import {
+	createRootRouteWithContext,
+	HeadContent,
+	Scripts,
+} from '@tanstack/react-router';
+import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
+import TanStackQueryDevtools from '../integrations/tanstack-query/devtools';
+import appCss from '../styles.css?url';
+
+interface MyRouterContext {
+	queryClient: QueryClient;
+}
+
+export const Route = createRootRouteWithContext<MyRouterContext>()({
+	head: () => ({
+		meta: [
+			{
+				charSet: 'utf-8',
+			},
+			{
+				name: 'viewport',
+				content: 'width=device-width, initial-scale=1',
+			},
+			{
+				title: 'TanStack Start Starter',
+			},
+		],
+		links: [
+			{
+				rel: 'stylesheet',
+				href: appCss,
+			},
+		],
+	}),
+	shellComponent: RootDocument,
+});
+
+function RootDocument({ children }: { children: React.ReactNode }) {
+	return (
+		<html lang='en' suppressHydrationWarning>
+			<head>
+				<HeadContent />
+			</head>
+			<body className='bg-background'>
+				<ThemeProvider defaultTheme='system' storageKey='theme'>
+					<TooltipProvider delay={500}>{children}</TooltipProvider>
+					<TanStackDevtools
+						config={{
+							position: 'bottom-right',
+						}}
+						plugins={[
+							{
+								name: 'Tanstack Router',
+								render: <TanStackRouterDevtoolsPanel />,
+							},
+							TanStackQueryDevtools,
+							hotkeysDevtoolsPlugin(),
+						]}
+					/>
+				</ThemeProvider>
+				<Scripts />
+			</body>
+		</html>
+	);
+}

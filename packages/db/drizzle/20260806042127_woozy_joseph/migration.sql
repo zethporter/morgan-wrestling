@@ -1,0 +1,1 @@
+ALTER TABLE `team_pages` ADD `content_metadata` text;
