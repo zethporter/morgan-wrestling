@@ -21,17 +21,17 @@ export function AppSidebar() {
 	});
 	return (
 		<Sidebar variant='sidebar'>
-			<SidebarHeader>
-				<Avatar>
-					<AvatarImage src={''} />
-					<AvatarFallback>ZP</AvatarFallback>
-				</Avatar>
-			</SidebarHeader>
+			<SidebarHeader></SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup />
 				<SidebarGroup />
 			</SidebarContent>
-			<SidebarFooter />
+			<SidebarFooter>
+				<Avatar>
+					<AvatarImage src={''} />
+					<AvatarFallback>ZP</AvatarFallback>
+				</Avatar>
+			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>
 	);
