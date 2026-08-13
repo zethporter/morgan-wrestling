@@ -1,17 +1,15 @@
+import { ThemeProvider } from '@morgan-wrestling/ui/components/theme-provider';
+import { TanStackDevtools } from '@tanstack/react-devtools';
+import { hotkeysDevtoolsPlugin } from '@tanstack/react-hotkeys-devtools';
+import type { QueryClient } from '@tanstack/react-query';
 import {
+	createRootRouteWithContext,
 	HeadContent,
 	Scripts,
-	createRootRouteWithContext,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
-import { TanStackDevtools } from '@tanstack/react-devtools';
-
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools';
-
 import appCss from '../styles.css?url';
-
-import type { QueryClient } from '@tanstack/react-query';
-import { ThemeProvider } from '@morgan-wrestling/ui/components/theme-provider';
 
 interface MyRouterContext {
 	queryClient: QueryClient;
@@ -50,6 +48,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<body className='bg-background'>
 				<ThemeProvider defaultTheme='system' storageKey='theme'>
 					{children}
+					<span>something __root</span>
 					<TanStackDevtools
 						config={{
 							position: 'bottom-right',
@@ -60,6 +59,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 								render: <TanStackRouterDevtoolsPanel />,
 							},
 							TanStackQueryDevtools,
+							hotkeysDevtoolsPlugin(),
 						]}
 					/>
 				</ThemeProvider>

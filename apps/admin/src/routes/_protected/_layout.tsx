@@ -1,4 +1,9 @@
+import {
+	SidebarProvider,
+	SidebarTrigger,
+} from '@morgan-wrestling/ui/components/ui/sidebar';
 import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { AppSidebar } from '#/components/app-sidebar.tsx';
 
 export const Route = createFileRoute('/_protected/_layout')({
 	component: RouteComponent,
@@ -6,12 +11,13 @@ export const Route = createFileRoute('/_protected/_layout')({
 
 function RouteComponent() {
 	return (
-		<div>
-			<span>layout</span>
+		<SidebarProvider>
+			<AppSidebar />
 
 			<main>
+				<SidebarTrigger />
 				<Outlet />
 			</main>
-		</div>
+		</SidebarProvider>
 	);
 }
