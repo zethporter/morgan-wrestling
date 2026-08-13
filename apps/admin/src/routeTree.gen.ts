@@ -13,6 +13,9 @@ import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ProtectedLayoutRouteImport } from './routes/_protected/_layout'
 import { Route as ProtectedLayoutIndexRouteImport } from './routes/_protected/_layout/index'
+import { Route as ProtectedLayoutCalendarsRouteImport } from './routes/_protected/_layout/calendars'
+import { Route as ProtectedLayoutHomePageRouteImport } from './routes/_protected/_layout/home-page'
+import { Route as ProtectedLayoutTeamsRouteImport } from './routes/_protected/_layout/teams'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const ProtectedRoute = ProtectedRouteImport.update({
@@ -33,6 +36,22 @@ const ProtectedLayoutIndexRoute = ProtectedLayoutIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ProtectedLayoutRoute,
 } as any)
+const ProtectedLayoutCalendarsRoute =
+  ProtectedLayoutCalendarsRouteImport.update({
+    id: '/calendars',
+    path: '/calendars',
+    getParentRoute: () => ProtectedLayoutRoute,
+  } as any)
+const ProtectedLayoutHomePageRoute = ProtectedLayoutHomePageRouteImport.update({
+  id: '/home-page',
+  path: '/home-page',
+  getParentRoute: () => ProtectedLayoutRoute,
+} as any)
+const ProtectedLayoutTeamsRoute = ProtectedLayoutTeamsRouteImport.update({
+  id: '/teams',
+  path: '/teams',
+  getParentRoute: () => ProtectedLayoutRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -42,11 +61,17 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof ProtectedLayoutIndexRoute
   '/login': typeof LoginRoute
+  '/calendars': typeof ProtectedLayoutCalendarsRoute
+  '/home-page': typeof ProtectedLayoutHomePageRoute
+  '/teams': typeof ProtectedLayoutTeamsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof ProtectedLayoutIndexRoute
   '/login': typeof LoginRoute
+  '/calendars': typeof ProtectedLayoutCalendarsRoute
+  '/home-page': typeof ProtectedLayoutHomePageRoute
+  '/teams': typeof ProtectedLayoutTeamsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
@@ -54,19 +79,26 @@ export interface FileRoutesById {
   '/_protected': typeof ProtectedRouteWithChildren
   '/login': typeof LoginRoute
   '/_protected/_layout': typeof ProtectedLayoutRouteWithChildren
+  '/_protected/_layout/calendars': typeof ProtectedLayoutCalendarsRoute
+  '/_protected/_layout/home-page': typeof ProtectedLayoutHomePageRoute
+  '/_protected/_layout/teams': typeof ProtectedLayoutTeamsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_protected/_layout/': typeof ProtectedLayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/login' | '/api/auth/$'
+  fullPaths:
+    '/' | '/login' | '/calendars' | '/home-page' | '/teams' | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/api/auth/$'
+  to: '/' | '/login' | '/calendars' | '/home-page' | '/teams' | '/api/auth/$'
   id:
     | '__root__'
     | '/_protected'
     | '/login'
     | '/_protected/_layout'
+    | '/_protected/_layout/calendars'
+    | '/_protected/_layout/home-page'
+    | '/_protected/_layout/teams'
     | '/api/auth/$'
     | '/_protected/_layout/'
   fileRoutesById: FileRoutesById
@@ -107,6 +139,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedLayoutIndexRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
+    '/_protected/_layout/calendars': {
+      id: '/_protected/_layout/calendars'
+      path: '/calendars'
+      fullPath: '/calendars'
+      preLoaderRoute: typeof ProtectedLayoutCalendarsRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
+    '/_protected/_layout/home-page': {
+      id: '/_protected/_layout/home-page'
+      path: '/home-page'
+      fullPath: '/home-page'
+      preLoaderRoute: typeof ProtectedLayoutHomePageRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
+    '/_protected/_layout/teams': {
+      id: '/_protected/_layout/teams'
+      path: '/teams'
+      fullPath: '/teams'
+      preLoaderRoute: typeof ProtectedLayoutTeamsRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -118,10 +171,16 @@ declare module '@tanstack/react-router' {
 }
 
 interface ProtectedLayoutRouteChildren {
+  ProtectedLayoutCalendarsRoute: typeof ProtectedLayoutCalendarsRoute
+  ProtectedLayoutHomePageRoute: typeof ProtectedLayoutHomePageRoute
+  ProtectedLayoutTeamsRoute: typeof ProtectedLayoutTeamsRoute
   ProtectedLayoutIndexRoute: typeof ProtectedLayoutIndexRoute
 }
 
 const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
+  ProtectedLayoutCalendarsRoute: ProtectedLayoutCalendarsRoute,
+  ProtectedLayoutHomePageRoute: ProtectedLayoutHomePageRoute,
+  ProtectedLayoutTeamsRoute: ProtectedLayoutTeamsRoute,
   ProtectedLayoutIndexRoute: ProtectedLayoutIndexRoute,
 }
 

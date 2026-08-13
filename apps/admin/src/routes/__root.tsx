@@ -1,4 +1,5 @@
 import { ThemeProvider } from '@morgan-wrestling/ui/components/theme-provider';
+import { TooltipProvider } from '@morgan-wrestling/ui/components/ui/tooltip';
 import { TanStackDevtools } from '@tanstack/react-devtools';
 import { hotkeysDevtoolsPlugin } from '@tanstack/react-hotkeys-devtools';
 import type { QueryClient } from '@tanstack/react-query';
@@ -47,8 +48,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</head>
 			<body className='bg-background'>
 				<ThemeProvider defaultTheme='system' storageKey='theme'>
-					{children}
-					<span>something __root</span>
+					<TooltipProvider delay={500}>{children}</TooltipProvider>
 					<TanStackDevtools
 						config={{
 							position: 'bottom-right',

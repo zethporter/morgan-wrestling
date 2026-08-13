@@ -1,7 +1,4 @@
-import {
-	SidebarProvider,
-	SidebarTrigger,
-} from '@morgan-wrestling/ui/components/ui/sidebar';
+import { SidebarProvider } from '@morgan-wrestling/ui/components/ui/sidebar';
 import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { AppSidebar } from '#/components/app-sidebar.tsx';
 
@@ -14,8 +11,7 @@ function RouteComponent() {
 		<SidebarProvider>
 			<AppSidebar />
 
-			<main>
-				<SidebarTrigger />
+			<main className='w-full h-screen overflow-hidden'>
 				<Outlet />
 			</main>
 		</SidebarProvider>
