@@ -12,27 +12,27 @@ import { TextAlignToggle } from './tb-components/text-align-toggle';
 import { UnderlineToggle } from './tb-components/underline-toggle';
 
 export function Toolbar({ editor }: { editor: Editor }) {
-  if (!editor) {
-    return null;
-  }
-  return (
-    <div
-      className={cn(
-        'flex flex-row justify-start gap-2 p-1 rounded-sm bg-background',
-      )}
-    >
-      <HeadingSelect />
-      <div className='flex flex-row gap-1 flex-nowrap'>
-        <BoldToggle />
-        <UnderlineToggle />
-        <ItalicToggle />
-        <StrikeToggle />
-        <TextAlignToggle />
-        <QuoteToggle />
-        <HighlightPicker />
-        <BulletListToggle />
-        <OrderedListToggle />
-      </div>
-    </div>
-  );
+	if (!editor) {
+		return null;
+	}
+	return (
+		<div
+			className={cn(
+				'flex flex-row justify-start gap-2 p-1 rounded-sm bg-background',
+			)}
+		>
+			<HeadingSelect />
+			<div className='flex flex-row gap-1 flex-nowrap'>
+				<BoldToggle />
+				<UnderlineToggle />
+				<ItalicToggle />
+				<StrikeToggle />
+				<TextAlignToggle />
+				<QuoteToggle />
+				<HighlightPicker />
+				<BulletListToggle />
+				<OrderedListToggle />
+			</div>
+		</div>
+	);
 }

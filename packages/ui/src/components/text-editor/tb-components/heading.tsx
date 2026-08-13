@@ -21,7 +21,7 @@ import {
 } from '../../ui/select';
 import { Skeleton } from '../../ui/skeleton';
 
-const headingVariants = cva('',{
+const headingVariants = cva('', {
 	variants: {
 		size: {
 			default: 'w-44 h-9',

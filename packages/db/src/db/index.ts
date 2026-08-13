@@ -1,5 +1,3 @@
-
-
 import { drizzle } from 'drizzle-orm/tursodatabase-serverless';
 
 // const db = drizzle({
@@ -10,7 +8,7 @@ import { drizzle } from 'drizzle-orm/tursodatabase-serverless';
 // });
 
 export function createAppDb(url: string, authToken: string) {
-  return drizzle({
-    connection: { url, authToken },
-  });
+	return drizzle({
+		connection: { url, authToken },
+	});
 }

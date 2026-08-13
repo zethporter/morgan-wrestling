@@ -17,9 +17,7 @@ const quoteVariants = cva('', {
 	},
 });
 
-export const QuoteToggle = ({
-	size,
-}: VariantProps<typeof quoteVariants>) => {
+export const QuoteToggle = ({ size }: VariantProps<typeof quoteVariants>) => {
 	const { editor } = useCurrentEditor();
 	const editorState = useEditorState({
 		editor,

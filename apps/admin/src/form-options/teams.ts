@@ -16,9 +16,9 @@ import { formOptions } from '@tanstack/react-form-start';
 // })
 
 export const newTeamFormOps = formOptions({
-  defaultValues: {
-    name: '',
-    homeContent: '',
-    homeContentMetadata: '',
-  }
-})
+	defaultValues: {
+		name: '',
+		homeContent: '',
+		homeContentMetadata: '',
+	},
+});

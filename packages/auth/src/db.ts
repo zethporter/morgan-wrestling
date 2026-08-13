@@ -1,7 +1,7 @@
-import { drizzle } from "drizzle-orm/libsql";
+import { drizzle } from 'drizzle-orm/libsql';
 
 export function createAuthDb(url: string, authToken: string) {
-  return drizzle({
-    connection: { url, authToken },
-  });
+	return drizzle({
+		connection: { url, authToken },
+	});
 }

@@ -18,34 +18,30 @@
 	},
 	"languages": {
 		"TypeScript": {
-			"formatter": "language_server",
 			"language_servers": [
 				"typescript-ls",
-				"!typescript-language-server",
+				"!vtsls",
 				"biome",
 				"..."
 			]
 		},
 		"JavaScript": {
-			"formatter": "language_server",
 			"language_servers": [
 				"typescript-ls",
-				"!typescript-language-server",
+				"!vtsls",
 				"biome",
 				"..."
 			]
 		},
 		"TSX": {
-			"formatter": "language_server",
 			"language_servers": [
 				"typescript-ls",
-				"!typescript-language-server",
+				"!vtsls",
 				"biome",
 				"..."
 			]
 		},
 		"JSON": {
-			"formatter": "language_server",
 			"language_servers": [
 				"biome"
 			]
