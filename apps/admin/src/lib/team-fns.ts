@@ -51,6 +51,7 @@ export const createTeam = createServerFn({ method: 'POST' })
 	.handler(async ({ data }) => {
 		try {
 			const validatedData = await createTeamServerValidate(data);
+
 			await db.insert(teams).values(validatedData);
 			// return team;
 		} catch (error) {

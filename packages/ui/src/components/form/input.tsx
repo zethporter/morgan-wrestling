@@ -1,9 +1,9 @@
-import { Field, FieldError, FieldLabel } from '../ui/field';
-import { Input } from '../ui/input';
 import type { AnyFieldApi } from '@tanstack/react-form';
-import type { ComponentProps } from 'react';
 // import { cva } from "class-variance-authority"; // Possibly could use for more consistent input styling.
 import { cn } from '@ui/lib/utils';
+import type { ComponentProps } from 'react';
+import { Field, FieldError, FieldLabel } from '../ui/field';
+import { Input } from '../ui/input';
 
 type FormInputProps = {
 	field: AnyFieldApi;
