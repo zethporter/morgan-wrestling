@@ -45,5 +45,10 @@
 			"quoteStyle": "single",
 			"jsxQuoteStyle": "single"
 		}
+	},
+	"css": {
+		"parser": {
+			"allowTailwindFunctions": true
+		}
 	}
 }

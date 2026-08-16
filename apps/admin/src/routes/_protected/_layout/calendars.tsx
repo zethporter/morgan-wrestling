@@ -8,6 +8,8 @@ import { addDays } from 'date-fns';
 import { CircleIcon } from 'lucide-react';
 import * as React from 'react';
 import { type DateRange } from 'react-day-picker';
+import { NewCalendarDialog } from '#/components/new-calendar.tsx';
+import { getCalendarFormDataFromServer } from '#/form-handlers/calendar.ts';
 
 function CalendarCustomDays() {
 	const [range, setRange] = React.useState<DateRange | undefined>({
@@ -58,11 +60,17 @@ function CalendarCustomDays() {
 
 export const Route = createFileRoute('/_protected/_layout/calendars')({
 	component: RouteComponent,
+	loader: async () => ({
+		state: await getCalendarFormDataFromServer(),
+	}),
 });
 
 function RouteComponent() {
+	const { state } = Route.useLoaderData();
+
 	return (
 		<div className='p-5 flex justify-center w-full'>
+			<NewCalendarDialog state={state} />
 			<CalendarCustomDays />
 		</div>
 	);

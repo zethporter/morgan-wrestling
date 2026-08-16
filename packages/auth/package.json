@@ -7,11 +7,11 @@
     "./schema": "./src/schema.ts"
   },
   "scripts": {
-    "auth:db:generate": "bun x auth@v1.7.0-rc.1 generate --config ./src/config.ts --output ./src/schema.ts",
-    "auth:orm:generate": "drizzle-kit generate",
-    "auth:orm:migrate": "drizzle-kit migrate",
-    "auth:orm:push": "drizzle-kit push",
-    "auth:orm:pull": "drizzle-kit pull"
+    "db:generate": "bun x auth@v1.7.0-rc.1 generate --config ./src/config.ts --output ./src/schema.ts",
+    "db:generate": "bun --bun drizzle-kit generate",
+    "db:migrate": "bun --bun drizzle-kit migrate",
+    "db:push": "bun --bun drizzle-kit push",
+    "db:pull": "bun --bun drizzle-kit pull"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.6.26",

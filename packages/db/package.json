@@ -7,11 +7,11 @@
     "./schema": "./src/db/schema.ts"
   },
   "scripts": {
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:push": "drizzle-kit push",
-    "db:pull": "drizzle-kit pull",
-    "db:studio": "drizzle-kit studio"
+    "db:generate": "bun --bun drizzle-kit generate",
+    "db:migrate": "bun --bun drizzle-kit migrate",
+    "db:push": "bun --bun drizzle-kit push",
+    "db:pull": "bun --bun drizzle-kit pull",
+    "db:studio": "bun --bun drizzle-kit studio"
   },
   "dependencies": {
     "@tursodatabase/serverless": "^1.4.0",

@@ -1,4 +1,4 @@
-import { auth } from '@auth/lib/auth';
+import { AuthError, auth } from '@auth/lib/auth';
 import { createServerFn } from '@tanstack/react-start';
 import { getRequestHeaders } from '@tanstack/react-start/server';
 
@@ -17,7 +17,7 @@ export const ensureSession = createServerFn({ method: 'GET' }).handler(
 		const session = await auth.api.getSession({ headers });
 
 		if (!session) {
-			throw new Error('Unauthorized');
+			throw new AuthError('User Not Authenticated', 401);
 		}
 
 		return session;

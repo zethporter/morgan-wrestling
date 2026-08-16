@@ -8,7 +8,7 @@ import { setResponseStatus } from '@tanstack/react-start/server';
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
 import { db, teamInsertSchema, teams } from '#/db';
-import { newTeamFormOpts } from '#/form-options/teams';
+import { newTeamFormOpts } from '#/form-handlers/teams';
 
 // import { ensureSession } from "./auth-fns";
 
