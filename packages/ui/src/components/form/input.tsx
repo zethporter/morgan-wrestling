@@ -40,7 +40,8 @@ export const FormInput = (props: FormInputProps) => {
 				disabled={props.disabled}
 				aria-invalid={isInvalid}
 				className={cn(props.inputClassName)}
-				placeholder={props.placeholder}
+        placeholder={props.placeholder}
+        autoComplete={props.autoComplete ?? 'no'}
 			/>
 			{isInvalid && <FieldError errors={props.field.state.meta.errors} />}
 		</Field>

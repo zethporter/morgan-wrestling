@@ -23,6 +23,9 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "paths": {
+      "@morgan-wrestling/ui/*": [
+        "./src/*"
+      ],
       "@ui/*": [
         "./src/*"
       ]

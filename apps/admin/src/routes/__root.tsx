@@ -11,6 +11,7 @@ import {
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools';
 import appCss from '../styles.css?url';
+import { Toaster } from '@morgan-wrestling/ui/components/ui/toast';
 
 interface MyRouterContext {
 	queryClient: QueryClient;
@@ -48,7 +49,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</head>
 			<body className='bg-background'>
 				<ThemeProvider defaultTheme='system' storageKey='theme'>
-					<TooltipProvider delay={500}>{children}</TooltipProvider>
+          <TooltipProvider delay={500}>{children}
+          <Toaster /></TooltipProvider>
 					<TanStackDevtools
 						config={{
 							position: 'bottom-right',

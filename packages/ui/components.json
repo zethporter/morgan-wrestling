@@ -11,11 +11,11 @@
     "prefix": ""
   },
   "aliases": {
-    "components": "./components",
-    "utils": "./lib/utils",
-    "ui": "./components/ui",
-    "lib": "./lib",
-    "hooks": "./hooks"
+    "components": "@morgan-wrestling/ui/components",
+    "utils": "@morgan-wrestling/ui/lib/utils",
+    "ui": "@morgan-wrestling/ui/components/ui",
+    "lib": "@morgan-wrestling/ui/lib",
+    "hooks": "@morgan-wrestling/ui/hooks"
   },
   "iconLibrary": "lucide",
   "rtl": false,

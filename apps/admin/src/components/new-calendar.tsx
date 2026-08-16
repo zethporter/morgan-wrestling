@@ -15,44 +15,50 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from '@morgan-wrestling/ui/components/ui/tooltip';
-import type { ServerFormState } from '@tanstack/react-form';
 import {
-	mergeForm,
 	useForm,
-	useSelector,
-	useTransform,
 } from '@tanstack/react-form-start';
 import { CalendarPlusIcon } from 'lucide-react';
 import {
 	handleNewCalendarSubmit,
-	newCalendarFormOptions,
 	newCalendarValidator,
 } from '#/form-handlers/calendar';
+import { toast } from '@morgan-wrestling/ui/components/ui/toast';
 
-export const NewCalendarDialog = ({
-	state,
-}: {
-	state: ServerFormState<any, undefined>;
-}) => {
+export const NewCalendarDialog = () => {
 	const form = useForm({
-		...newCalendarFormOptions,
+		defaultValues: {
+			name: '',
+			color: 'slate',
+    },
+		onSubmit: async ({ value }) => {
+
+			await toast.promise(
+				handleNewCalendarSubmit({ data: value }),
+				{
+					loading: 'Creating calendar...',
+					success: 'Calendar created!',
+					error: 'Failed to create calendar.',
+				}
+			);
+		},
 		validators: {
 			onSubmit: (form) => newCalendarValidator.parse(form),
 		},
-		transform: useTransform((baseForm) => mergeForm(baseForm, state), [state]),
 	});
 
 	return (
-		<form
-			action={handleNewCalendarSubmit.url}
-			method={'POST'}
-			encType={'multipart/form-data'}
-		>
 			<Dialog>
 				<DialogTrigger render={<Button size='icon' />}>
 					<CalendarPlusIcon />
 				</DialogTrigger>
-				<DialogContent showCloseButton={false}>
+				<DialogContent showCloseButton={false} render={<form
+      onSubmit={(e) => {
+        e.preventDefault();
+        form.handleSubmit();
+					}}
+      />}>
+
 					<DialogHeader>
 						<DialogTitle className='text-lg'>Add New Calendar</DialogTitle>
 					</DialogHeader>
@@ -91,6 +97,5 @@ export const NewCalendarDialog = ({
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
-		</form>
 	);
 };
