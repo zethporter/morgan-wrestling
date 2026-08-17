@@ -5,6 +5,7 @@ import { admin, oneTap, organization, twoFactor } from 'better-auth/plugins';
 import { tanstackStartCookies } from 'better-auth/tanstack-start';
 import type { createAuthDb } from './db';
 import { ac, guest, manager, user } from './permissions';
+import * as authSchema from './schema';
 
 export type AuthPlugin = Parameters<typeof betterAuth>[0]['plugins'][number];
 
@@ -29,6 +30,7 @@ export function createAuth(config: AuthConfig) {
 	return betterAuth({
 		database: drizzleAdapter(db, {
 			provider: 'sqlite',
+			schema: authSchema,
 		}),
 		appName,
 		emailAndPassword: {
