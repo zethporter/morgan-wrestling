@@ -1,19 +1,19 @@
-import { Field, FieldError, FieldLabel } from '../ui/field';
+// import { cva } from "class-variance-authority"; // Possibly could use for more consistent input styling.
+
+import { useFieldContext } from '@morgan-wrestling/ui/hooks/use-form';
+import { cn } from '@ui/lib/utils';
+import type { ComponentProps } from 'react';
 import {
 	Combobox,
 	ComboboxContent,
 	ComboboxEmpty,
 	ComboboxInput,
-	ComboboxList,
 	ComboboxItem,
+	ComboboxList,
 } from '../ui/combobox';
-import type { AnyFieldApi } from '@tanstack/react-form';
-import type { ComponentProps } from 'react';
-// import { cva } from "class-variance-authority"; // Possibly could use for more consistent input styling.
-import { cn } from '@ui/lib/utils';
+import { Field, FieldError, FieldLabel } from '../ui/field';
 
-type FormInputProps = {
-	field: AnyFieldApi;
+type ComboBoxProps = {
 	className?: string;
 	inputClassName?: string;
 	label?: string;
@@ -24,9 +24,10 @@ type FormInputProps = {
 	'id' | 'name' | 'onBlur' | 'onChange' | 'className'
 >;
 
-export const FormInput = (props: FormInputProps) => {
-	const isInvalid =
-		props.field.state.meta.isTouched && !props.field.state.meta.isValid;
+export const FormCombobox = (props: ComboBoxProps) => {
+	const field = useFieldContext<string>();
+
+	const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
 	return (
 		<Field
@@ -35,23 +36,23 @@ export const FormInput = (props: FormInputProps) => {
 			data-disabled={props.disabled}
 		>
 			<FieldLabel
-				htmlFor={props.field.name}
+				htmlFor={field.name}
 				className={cn(!props.label && 'sr-only')}
 			>
-				{props.label ?? props.field.name}
+				{props.label ?? field.name}
 			</FieldLabel>
 			<Combobox
 				aria-invalid={isInvalid}
 				items={props.items}
-				id={props.field.name}
-				value={props.field.state.value}
-				onValueChange={props.field.handleChange}
+				id={field.name}
+				value={field.state.value}
+				onValueChange={field.handleChange}
 			>
 				<ComboboxInput
 					className={cn(props.inputClassName)}
 					aria-invalid={isInvalid}
 					placeholder={props.placeholder}
-					onBlur={props.field.handleBlur}
+					onBlur={field.handleBlur}
 				/>
 				<ComboboxContent>
 					<ComboboxEmpty>No Items</ComboboxEmpty>
@@ -64,7 +65,7 @@ export const FormInput = (props: FormInputProps) => {
 					</ComboboxList>
 				</ComboboxContent>
 			</Combobox>
-			{isInvalid && <FieldError errors={props.field.state.meta.errors} />}
+			{isInvalid && <FieldError errors={field.state.meta.errors} />}
 		</Field>
 	);
 };

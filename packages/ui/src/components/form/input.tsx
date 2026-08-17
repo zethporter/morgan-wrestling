@@ -1,12 +1,12 @@
-import type { AnyFieldApi } from '@tanstack/react-form';
 // import { cva } from "class-variance-authority"; // Possibly could use for more consistent input styling.
+
+import { useFieldContext } from '@morgan-wrestling/ui/hooks/use-form';
 import { cn } from '@ui/lib/utils';
 import type { ComponentProps } from 'react';
 import { Field, FieldError, FieldLabel } from '../ui/field';
 import { Input } from '../ui/input';
 
 type FormInputProps = {
-	field: AnyFieldApi;
 	className?: string;
 	inputClassName?: string;
 	label?: string;
@@ -16,8 +16,8 @@ type FormInputProps = {
 >;
 
 export const FormInput = (props: FormInputProps) => {
-	const isInvalid =
-		props.field.state.meta.isTouched && !props.field.state.meta.isValid;
+	const field = useFieldContext<string>();
+	const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
 	return (
 		<Field
@@ -26,24 +26,23 @@ export const FormInput = (props: FormInputProps) => {
 			data-disabled={props.disabled}
 		>
 			<FieldLabel
-				htmlFor={props.field.name}
+				htmlFor={field.name}
 				className={cn(!props.label && 'sr-only')}
 			>
-				{props.label ?? props.field.name}
+				{props.label ?? field.name}
 			</FieldLabel>
 			<Input
-				id={props.field.name}
-				name={props.field.name}
-				onBlur={props.field.handleBlur}
-				onChange={(e) => props.field.handleChange(e.target.value)}
-				value={props.field.state.value}
+				id={field.name}
+				name={field.name}
+				onBlur={field.handleBlur}
+				onChange={(e) => field.handleChange(e.target.value)}
+				value={field.state.value}
 				disabled={props.disabled}
 				aria-invalid={isInvalid}
 				className={cn(props.inputClassName)}
-        placeholder={props.placeholder}
-        autoComplete={props.autoComplete ?? 'no'}
+				{...props}
 			/>
-			{isInvalid && <FieldError errors={props.field.state.meta.errors} />}
+			{isInvalid && <FieldError errors={field.state.meta.errors} />}
 		</Field>
 	);
 };

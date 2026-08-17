@@ -10,7 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProtectedRouteImport } from './routes/_protected'
-import { Route as LoginRouteImport } from './routes/login'
+import { Route as LogInRouteImport } from './routes/log-in'
+import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as ProtectedLayoutRouteImport } from './routes/_protected/_layout'
 import { Route as ProtectedLayoutIndexRouteImport } from './routes/_protected/_layout/index'
 import { Route as ProtectedLayoutCalendarsRouteImport } from './routes/_protected/_layout/calendars'
@@ -22,9 +23,14 @@ const ProtectedRoute = ProtectedRouteImport.update({
   id: '/_protected',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const LogInRoute = LogInRouteImport.update({
+  id: '/log-in',
+  path: '/log-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignUpRoute = SignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedLayoutRoute = ProtectedLayoutRouteImport.update({
@@ -60,7 +66,8 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof ProtectedLayoutIndexRoute
-  '/login': typeof LoginRoute
+  '/log-in': typeof LogInRoute
+  '/sign-up': typeof SignUpRoute
   '/calendars': typeof ProtectedLayoutCalendarsRoute
   '/home-page': typeof ProtectedLayoutHomePageRoute
   '/teams': typeof ProtectedLayoutTeamsRoute
@@ -68,7 +75,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof ProtectedLayoutIndexRoute
-  '/login': typeof LoginRoute
+  '/log-in': typeof LogInRoute
+  '/sign-up': typeof SignUpRoute
   '/calendars': typeof ProtectedLayoutCalendarsRoute
   '/home-page': typeof ProtectedLayoutHomePageRoute
   '/teams': typeof ProtectedLayoutTeamsRoute
@@ -77,7 +85,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_protected': typeof ProtectedRouteWithChildren
-  '/login': typeof LoginRoute
+  '/log-in': typeof LogInRoute
+  '/sign-up': typeof SignUpRoute
   '/_protected/_layout': typeof ProtectedLayoutRouteWithChildren
   '/_protected/_layout/calendars': typeof ProtectedLayoutCalendarsRoute
   '/_protected/_layout/home-page': typeof ProtectedLayoutHomePageRoute
@@ -88,13 +97,27 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/login' | '/calendars' | '/home-page' | '/teams' | '/api/auth/$'
+    | '/'
+    | '/log-in'
+    | '/sign-up'
+    | '/calendars'
+    | '/home-page'
+    | '/teams'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/calendars' | '/home-page' | '/teams' | '/api/auth/$'
+  to:
+    | '/'
+    | '/log-in'
+    | '/sign-up'
+    | '/calendars'
+    | '/home-page'
+    | '/teams'
+    | '/api/auth/$'
   id:
     | '__root__'
     | '/_protected'
-    | '/login'
+    | '/log-in'
+    | '/sign-up'
     | '/_protected/_layout'
     | '/_protected/_layout/calendars'
     | '/_protected/_layout/home-page'
@@ -105,7 +128,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   ProtectedRoute: typeof ProtectedRouteWithChildren
-  LoginRoute: typeof LoginRoute
+  LogInRoute: typeof LogInRoute
+  SignUpRoute: typeof SignUpRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -118,11 +142,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/log-in': {
+      id: '/log-in'
+      path: '/log-in'
+      fullPath: '/log-in'
+      preLoaderRoute: typeof LogInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-up': {
+      id: '/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof SignUpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected/_layout': {
@@ -202,7 +233,8 @@ const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   ProtectedRoute: ProtectedRouteWithChildren,
-  LoginRoute: LoginRoute,
+  LogInRoute: LogInRoute,
+  SignUpRoute: SignUpRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

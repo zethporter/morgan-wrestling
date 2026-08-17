@@ -1,15 +1,15 @@
-import type { AnyFieldApi } from '@tanstack/react-form';
 // import { cva } from "class-variance-authority"; // Possibly could use for more consistent input styling.
+
 import { cn } from '@ui/lib/utils';
 import { CalendarIcon } from 'lucide-react';
 import type { ComponentProps } from 'react';
+import { useFieldContext } from '../../hooks/use-form';
 import { Field, FieldError, FieldLabel } from '../ui/field';
 import {
 	Select,
 	SelectContent,
 	SelectGroup,
 	SelectItem,
-	SelectLabel,
 	SelectTrigger,
 	SelectValue,
 } from '../ui/select';
@@ -39,7 +39,6 @@ const calendarColors = {
 };
 
 type CalendarColorInputProps = {
-	field: AnyFieldApi;
 	className?: string;
 	inputClassName?: string;
 	label?: string;
@@ -48,9 +47,9 @@ type CalendarColorInputProps = {
 	'id' | 'name' | 'onBlur' | 'onChange' | 'className'
 >;
 
-export const CalendarColorInput = (props: CalendarColorInputProps) => {
-	const isInvalid =
-		props.field.state.meta.isTouched && !props.field.state.meta.isValid;
+export const FormCalendarColor = (props: CalendarColorInputProps) => {
+	const field = useFieldContext<keyof typeof calendarColors>();
+	const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
 	const items = Object.keys(calendarColors).map((key) => ({
 		value: key,
@@ -64,16 +63,18 @@ export const CalendarColorInput = (props: CalendarColorInputProps) => {
 			data-disabled={props.disabled}
 		>
 			<FieldLabel
-				htmlFor={props.field.name}
+				htmlFor={field.name}
 				className={cn(!props.label && 'sr-only')}
 			>
-				{props.label ?? props.field.name}
+				{props.label ?? field.name}
 			</FieldLabel>
 			<Select
-				id={props.field.name}
-				name={props.field.name}
-				value={props.field.state.value}
-				onValueChange={(value) => props.field.handleChange(value)}
+				id={field.name}
+				name={field.name}
+				value={field.state.value}
+				onValueChange={(value) =>
+					field.handleChange(value as keyof typeof calendarColors)
+				}
 				items={items}
 				disabled={props.disabled}
 				data-invalid={isInvalid}
@@ -107,7 +108,7 @@ export const CalendarColorInput = (props: CalendarColorInputProps) => {
 					</SelectGroup>
 				</SelectContent>
 			</Select>
-			{isInvalid && <FieldError errors={props.field.state.meta.errors} />}
+			{isInvalid && <FieldError errors={field.state.meta.errors} />}
 		</Field>
 	);
 };

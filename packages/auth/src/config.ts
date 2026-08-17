@@ -24,7 +24,6 @@ export function createAuth(config: AuthConfig) {
 		appName = 'Wrestler of the Day',
 		adminUserIds = [],
 		plugins: customPlugins = [],
-		emailAndPassword = { enabled: true },
 	} = config;
 
 	return betterAuth({
@@ -32,7 +31,10 @@ export function createAuth(config: AuthConfig) {
 			provider: 'sqlite',
 		}),
 		appName,
-		emailAndPassword,
+		emailAndPassword: {
+			enabled: true,
+			autoSignIn: true
+		},
 		socialProviders: {
 			google: {
 				clientId: process.env.GOOGLE_CLIENT_ID!,
