@@ -1,5 +1,3 @@
-import { FormCalendarColor } from '@morgan-wrestling/ui/components/form/calendar-color.js';
-import { FormInput } from '@morgan-wrestling/ui/components/form/input';
 import { Button } from '@morgan-wrestling/ui/components/ui/button';
 import {
 	Dialog,
@@ -16,41 +14,30 @@ import {
 	TooltipContent,
 	TooltipTrigger,
 } from '@morgan-wrestling/ui/components/ui/tooltip';
-import { useForm } from '@tanstack/react-form-start';
+import { useAppForm } from '@morgan-wrestling/ui/hooks/use-form';
 import { CalendarPlusIcon } from 'lucide-react';
 import {
 	handleNewCalendarSubmit,
 	newCalendarValidator,
-} from '#/form-handlers/calendar';
+} from '#/lib/calendar-fns';
+import { useRouteContext } from '@tanstack/react-router';
 
 export const NewCalendarDialog = () => {
-	const form = useForm({
+	const context = useRouteContext({ from: '/_protected/_layout/calendars' })
+	const { queryClient } = context;
+
+	const form = useAppForm({
 		defaultValues: {
 			name: '',
 			color: 'slate',
 		},
 		onSubmit: async ({ value }) => {
-			// const calToast = toast.add({
-			// 	type: 'loading',
-			// 	description: 'Adding Calendar',
-			// });
-			// try {
-			// 	const res = await handleNewCalendarSubmit({ data: value });
-			// 	toast.add({
-			// 		type: 'success',
-			// 		description: res,
-			// 		id: calToast,
-			// 	});
-			// } catch (e) {
-			// 	toast.add({
-			// 		type: 'error',
-			// 		description: e instanceof Error ? e.message : String(e),
-			// 		id: calToast,
-			// 	});
-			// }
 			await toast.promise(handleNewCalendarSubmit({ data: value }), {
 				loading: 'Creating calendar...',
-				success: (res) => res,
+				success: (res) => {
+					queryClient.invalidateQueries({ queryKey: ['calendars'] });
+					return res;
+				},
 				error: (err) => (err instanceof Error ? err.message : String(err)),
 			});
 		},
@@ -61,9 +48,15 @@ export const NewCalendarDialog = () => {
 
 	return (
 		<Dialog>
-			<DialogTrigger render={<Button size='icon' />}>
-				<CalendarPlusIcon />
-			</DialogTrigger>
+			<Tooltip>
+				<TooltipTrigger>
+					<DialogTrigger render={<Button />}>
+						<CalendarPlusIcon className='stroke-3'/>
+						New Calendar
+					</DialogTrigger>
+				</TooltipTrigger>
+				<TooltipContent>Add new Calendar</TooltipContent>
+			</Tooltip>
 			<DialogContent
 				showCloseButton={false}
 				render={
@@ -78,16 +71,16 @@ export const NewCalendarDialog = () => {
 				<DialogHeader>
 					<DialogTitle className='text-lg'>Add New Calendar</DialogTitle>
 				</DialogHeader>
-				<form.Field
+				<form.AppField
 					name='name'
 					children={(field) => (
-						<FormInput field={field} label='Calendar Name' />
+						<field.FormInput label='Calendar Name' />
 					)}
 				/>
-				<form.Field
+				<form.AppField
 					name='color'
 					children={(field) => (
-						<FormCalendarColor field={field} label='Color' />
+						<field.FormCalendarColor label='Color' />
 					)}
 				/>
 				<DialogFooter>

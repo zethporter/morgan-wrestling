@@ -18,6 +18,7 @@ import { Route as ProtectedLayoutCalendarsRouteImport } from './routes/_protecte
 import { Route as ProtectedLayoutHomePageRouteImport } from './routes/_protected/_layout/home-page'
 import { Route as ProtectedLayoutTeamsRouteImport } from './routes/_protected/_layout/teams'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ProtectedLayoutCalendarsCalendarIdRouteImport } from './routes/_protected/_layout/calendars_.$calendarId'
 
 const ProtectedRoute = ProtectedRouteImport.update({
   id: '/_protected',
@@ -63,6 +64,12 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProtectedLayoutCalendarsCalendarIdRoute =
+  ProtectedLayoutCalendarsCalendarIdRouteImport.update({
+    id: '/calendars_/$calendarId',
+    path: '/calendars/$calendarId',
+    getParentRoute: () => ProtectedLayoutRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof ProtectedLayoutIndexRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/home-page': typeof ProtectedLayoutHomePageRoute
   '/teams': typeof ProtectedLayoutTeamsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/calendars/$calendarId': typeof ProtectedLayoutCalendarsCalendarIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof ProtectedLayoutIndexRoute
@@ -81,6 +89,7 @@ export interface FileRoutesByTo {
   '/home-page': typeof ProtectedLayoutHomePageRoute
   '/teams': typeof ProtectedLayoutTeamsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/calendars/$calendarId': typeof ProtectedLayoutCalendarsCalendarIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -93,6 +102,7 @@ export interface FileRoutesById {
   '/_protected/_layout/teams': typeof ProtectedLayoutTeamsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_protected/_layout/': typeof ProtectedLayoutIndexRoute
+  '/_protected/_layout/calendars_/$calendarId': typeof ProtectedLayoutCalendarsCalendarIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
     | '/home-page'
     | '/teams'
     | '/api/auth/$'
+    | '/calendars/$calendarId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -113,6 +124,7 @@ export interface FileRouteTypes {
     | '/home-page'
     | '/teams'
     | '/api/auth/$'
+    | '/calendars/$calendarId'
   id:
     | '__root__'
     | '/_protected'
@@ -124,6 +136,7 @@ export interface FileRouteTypes {
     | '/_protected/_layout/teams'
     | '/api/auth/$'
     | '/_protected/_layout/'
+    | '/_protected/_layout/calendars_/$calendarId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -198,6 +211,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_protected/_layout/calendars_/$calendarId': {
+      id: '/_protected/_layout/calendars_/$calendarId'
+      path: '/calendars/$calendarId'
+      fullPath: '/calendars/$calendarId'
+      preLoaderRoute: typeof ProtectedLayoutCalendarsCalendarIdRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
   }
 }
 
@@ -206,6 +226,7 @@ interface ProtectedLayoutRouteChildren {
   ProtectedLayoutHomePageRoute: typeof ProtectedLayoutHomePageRoute
   ProtectedLayoutTeamsRoute: typeof ProtectedLayoutTeamsRoute
   ProtectedLayoutIndexRoute: typeof ProtectedLayoutIndexRoute
+  ProtectedLayoutCalendarsCalendarIdRoute: typeof ProtectedLayoutCalendarsCalendarIdRoute
 }
 
 const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
@@ -213,6 +234,8 @@ const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
   ProtectedLayoutHomePageRoute: ProtectedLayoutHomePageRoute,
   ProtectedLayoutTeamsRoute: ProtectedLayoutTeamsRoute,
   ProtectedLayoutIndexRoute: ProtectedLayoutIndexRoute,
+  ProtectedLayoutCalendarsCalendarIdRoute:
+    ProtectedLayoutCalendarsCalendarIdRoute,
 }
 
 const ProtectedLayoutRouteWithChildren = ProtectedLayoutRoute._addFileChildren(

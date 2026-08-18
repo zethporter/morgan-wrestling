@@ -13,17 +13,22 @@ import {
 	DropdownMenuSubContent,
 	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
+
 } from '@morgan-wrestling/ui/components/ui/dropdown-menu';
+import { useRouter } from '@tanstack/react-router';
 import { LogOutIcon } from 'lucide-react';
+import { authClient } from '@auth/lib/auth-client';
 
 export const UserMenu = () => {
+	const router = useRouter();
+	const { data } = authClient.useSession();
 	const { theme, setTheme } = useTheme();
 
 	return (
 		<DropdownMenu>
 			<DropdownMenuTrigger>
 				<Avatar>
-					<AvatarImage src={''} />
+					<AvatarImage src={data?.user.image ?? ''} />
 					<AvatarFallback>ZP</AvatarFallback>
 				</Avatar>
 			</DropdownMenuTrigger>
@@ -54,8 +59,16 @@ export const UserMenu = () => {
 					</DropdownMenuSub>
 				</DropdownMenuGroup>
 				<DropdownMenuGroup>
-					<DropdownMenuItem>
-						<LogOutIcon /> Logout
+					<DropdownMenuItem onClick={async () => {
+							await authClient.signOut({
+								fetchOptions: {
+									onSuccess: () => {
+										router.navigate({ to: "/log-in" }); // redirect to login page
+									},
+								},
+							});
+						}}>
+							<LogOutIcon /> Logout
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 			</DropdownMenuContent>

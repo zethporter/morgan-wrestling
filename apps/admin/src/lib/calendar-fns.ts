@@ -16,13 +16,11 @@ export const newCalendarValidator = calendarInsertSchema.omit({
 
 export const handleNewCalendarSubmit = createServerFn({ method: 'POST' })
 	.validator((data: unknown) => {
-		console.log({ data });
 		const validatedData = newCalendarValidator.parse(data);
 		return validatedData;
 	})
 	.handler(async ({ data }) => {
 		try {
-			console.log({ data });
 			const session = await ensureSession();
 			const creationDate = new Date();
 			await db.insert(calendars).values({
@@ -44,3 +42,12 @@ export const handleNewCalendarSubmit = createServerFn({ method: 'POST' })
 		}
 		return 'Successfully created calendar';
 	});
+
+export const getCalendars = createServerFn({ method: 'GET' }).handler(async () => {
+	const _calendars = await db.select({
+		id: calendars.id,
+		name: calendars.name,
+		color: calendars.color
+	}).from(calendars)
+	return _calendars
+});

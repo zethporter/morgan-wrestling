@@ -13,30 +13,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '../ui/select';
-
-const calendarColors = {
-	red: 'text-calendar-red',
-	orange: 'text-calendar-orange',
-	amber: 'text-calendar-amber',
-	yellow: 'text-calendar-yellow',
-	lime: 'text-calendar-lime',
-	green: 'text-calendar-green',
-	emerald: 'text-calendar-emerald',
-	teal: 'text-calendar-teal',
-	cyan: 'text-calendar-cyan',
-	sky: 'text-calendar-sky',
-	blue: 'text-calendar-blue',
-	indigo: 'text-calendar-indigo',
-	violet: 'text-calendar-violet',
-	purple: 'text-calendar-purple',
-	fuchsia: 'text-calendar-fuchsia',
-	pink: 'text-calendar-pink',
-	rose: 'text-calendar-rose',
-	slate: 'text-calendar-slate',
-	mauve: 'text-calendar-mauve',
-	mist: 'text-calendar-mist',
-	olive: 'text-calendar-olive',
-};
+import { calendarColors } from '../calendar/calendar-utils';
 
 type CalendarColorInputProps = {
 	className?: string;
