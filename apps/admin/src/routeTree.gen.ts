@@ -14,11 +14,12 @@ import { Route as LogInRouteImport } from './routes/log-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as ProtectedLayoutRouteImport } from './routes/_protected/_layout'
 import { Route as ProtectedLayoutIndexRouteImport } from './routes/_protected/_layout/index'
-import { Route as ProtectedLayoutCalendarsRouteImport } from './routes/_protected/_layout/calendars'
 import { Route as ProtectedLayoutHomePageRouteImport } from './routes/_protected/_layout/home-page'
 import { Route as ProtectedLayoutTeamsRouteImport } from './routes/_protected/_layout/teams'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as ProtectedLayoutCalendarsCalendarIdRouteImport } from './routes/_protected/_layout/calendars_.$calendarId'
+import { Route as ProtectedLayoutCalendarsCalendarLayoutRouteImport } from './routes/_protected/_layout/calendars/_calendarLayout'
+import { Route as ProtectedLayoutCalendarsCalendarLayoutIndexRouteImport } from './routes/_protected/_layout/calendars/_calendarLayout.index'
+import { Route as ProtectedLayoutCalendarsCalendarLayoutCalendarIdRouteImport } from './routes/_protected/_layout/calendars/_calendarLayout.$calendarId'
 
 const ProtectedRoute = ProtectedRouteImport.update({
   id: '/_protected',
@@ -43,12 +44,6 @@ const ProtectedLayoutIndexRoute = ProtectedLayoutIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ProtectedLayoutRoute,
 } as any)
-const ProtectedLayoutCalendarsRoute =
-  ProtectedLayoutCalendarsRouteImport.update({
-    id: '/calendars',
-    path: '/calendars',
-    getParentRoute: () => ProtectedLayoutRoute,
-  } as any)
 const ProtectedLayoutHomePageRoute = ProtectedLayoutHomePageRouteImport.update({
   id: '/home-page',
   path: '/home-page',
@@ -64,32 +59,45 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProtectedLayoutCalendarsCalendarIdRoute =
-  ProtectedLayoutCalendarsCalendarIdRouteImport.update({
-    id: '/calendars_/$calendarId',
-    path: '/calendars/$calendarId',
+const ProtectedLayoutCalendarsCalendarLayoutRoute =
+  ProtectedLayoutCalendarsCalendarLayoutRouteImport.update({
+    id: '/calendars/_calendarLayout',
+    path: '/calendars',
     getParentRoute: () => ProtectedLayoutRoute,
+  } as any)
+const ProtectedLayoutCalendarsCalendarLayoutIndexRoute =
+  ProtectedLayoutCalendarsCalendarLayoutIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => ProtectedLayoutCalendarsCalendarLayoutRoute,
+  } as any)
+const ProtectedLayoutCalendarsCalendarLayoutCalendarIdRoute =
+  ProtectedLayoutCalendarsCalendarLayoutCalendarIdRouteImport.update({
+    id: '/$calendarId',
+    path: '/$calendarId',
+    getParentRoute: () => ProtectedLayoutCalendarsCalendarLayoutRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof ProtectedLayoutIndexRoute
   '/log-in': typeof LogInRoute
   '/sign-up': typeof SignUpRoute
-  '/calendars': typeof ProtectedLayoutCalendarsRoute
   '/home-page': typeof ProtectedLayoutHomePageRoute
   '/teams': typeof ProtectedLayoutTeamsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/calendars/$calendarId': typeof ProtectedLayoutCalendarsCalendarIdRoute
+  '/calendars': typeof ProtectedLayoutCalendarsCalendarLayoutRouteWithChildren
+  '/calendars/$calendarId': typeof ProtectedLayoutCalendarsCalendarLayoutCalendarIdRoute
+  '/calendars/': typeof ProtectedLayoutCalendarsCalendarLayoutIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof ProtectedLayoutIndexRoute
   '/log-in': typeof LogInRoute
   '/sign-up': typeof SignUpRoute
-  '/calendars': typeof ProtectedLayoutCalendarsRoute
   '/home-page': typeof ProtectedLayoutHomePageRoute
   '/teams': typeof ProtectedLayoutTeamsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
-  '/calendars/$calendarId': typeof ProtectedLayoutCalendarsCalendarIdRoute
+  '/calendars/$calendarId': typeof ProtectedLayoutCalendarsCalendarLayoutCalendarIdRoute
+  '/calendars': typeof ProtectedLayoutCalendarsCalendarLayoutIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -97,12 +105,13 @@ export interface FileRoutesById {
   '/log-in': typeof LogInRoute
   '/sign-up': typeof SignUpRoute
   '/_protected/_layout': typeof ProtectedLayoutRouteWithChildren
-  '/_protected/_layout/calendars': typeof ProtectedLayoutCalendarsRoute
   '/_protected/_layout/home-page': typeof ProtectedLayoutHomePageRoute
   '/_protected/_layout/teams': typeof ProtectedLayoutTeamsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_protected/_layout/': typeof ProtectedLayoutIndexRoute
-  '/_protected/_layout/calendars_/$calendarId': typeof ProtectedLayoutCalendarsCalendarIdRoute
+  '/_protected/_layout/calendars/_calendarLayout': typeof ProtectedLayoutCalendarsCalendarLayoutRouteWithChildren
+  '/_protected/_layout/calendars/_calendarLayout/$calendarId': typeof ProtectedLayoutCalendarsCalendarLayoutCalendarIdRoute
+  '/_protected/_layout/calendars/_calendarLayout/': typeof ProtectedLayoutCalendarsCalendarLayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -110,33 +119,35 @@ export interface FileRouteTypes {
     | '/'
     | '/log-in'
     | '/sign-up'
-    | '/calendars'
     | '/home-page'
     | '/teams'
     | '/api/auth/$'
+    | '/calendars'
     | '/calendars/$calendarId'
+    | '/calendars/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/log-in'
     | '/sign-up'
-    | '/calendars'
     | '/home-page'
     | '/teams'
     | '/api/auth/$'
     | '/calendars/$calendarId'
+    | '/calendars'
   id:
     | '__root__'
     | '/_protected'
     | '/log-in'
     | '/sign-up'
     | '/_protected/_layout'
-    | '/_protected/_layout/calendars'
     | '/_protected/_layout/home-page'
     | '/_protected/_layout/teams'
     | '/api/auth/$'
     | '/_protected/_layout/'
-    | '/_protected/_layout/calendars_/$calendarId'
+    | '/_protected/_layout/calendars/_calendarLayout'
+    | '/_protected/_layout/calendars/_calendarLayout/$calendarId'
+    | '/_protected/_layout/calendars/_calendarLayout/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -183,13 +194,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedLayoutIndexRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
-    '/_protected/_layout/calendars': {
-      id: '/_protected/_layout/calendars'
-      path: '/calendars'
-      fullPath: '/calendars'
-      preLoaderRoute: typeof ProtectedLayoutCalendarsRouteImport
-      parentRoute: typeof ProtectedLayoutRoute
-    }
     '/_protected/_layout/home-page': {
       id: '/_protected/_layout/home-page'
       path: '/home-page'
@@ -211,31 +215,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_protected/_layout/calendars_/$calendarId': {
-      id: '/_protected/_layout/calendars_/$calendarId'
-      path: '/calendars/$calendarId'
-      fullPath: '/calendars/$calendarId'
-      preLoaderRoute: typeof ProtectedLayoutCalendarsCalendarIdRouteImport
+    '/_protected/_layout/calendars/_calendarLayout': {
+      id: '/_protected/_layout/calendars/_calendarLayout'
+      path: '/calendars'
+      fullPath: '/calendars'
+      preLoaderRoute: typeof ProtectedLayoutCalendarsCalendarLayoutRouteImport
       parentRoute: typeof ProtectedLayoutRoute
+    }
+    '/_protected/_layout/calendars/_calendarLayout/': {
+      id: '/_protected/_layout/calendars/_calendarLayout/'
+      path: '/'
+      fullPath: '/calendars/'
+      preLoaderRoute: typeof ProtectedLayoutCalendarsCalendarLayoutIndexRouteImport
+      parentRoute: typeof ProtectedLayoutCalendarsCalendarLayoutRoute
+    }
+    '/_protected/_layout/calendars/_calendarLayout/$calendarId': {
+      id: '/_protected/_layout/calendars/_calendarLayout/$calendarId'
+      path: '/$calendarId'
+      fullPath: '/calendars/$calendarId'
+      preLoaderRoute: typeof ProtectedLayoutCalendarsCalendarLayoutCalendarIdRouteImport
+      parentRoute: typeof ProtectedLayoutCalendarsCalendarLayoutRoute
     }
   }
 }
 
+interface ProtectedLayoutCalendarsCalendarLayoutRouteChildren {
+  ProtectedLayoutCalendarsCalendarLayoutCalendarIdRoute: typeof ProtectedLayoutCalendarsCalendarLayoutCalendarIdRoute
+  ProtectedLayoutCalendarsCalendarLayoutIndexRoute: typeof ProtectedLayoutCalendarsCalendarLayoutIndexRoute
+}
+
+const ProtectedLayoutCalendarsCalendarLayoutRouteChildren: ProtectedLayoutCalendarsCalendarLayoutRouteChildren =
+  {
+    ProtectedLayoutCalendarsCalendarLayoutCalendarIdRoute:
+      ProtectedLayoutCalendarsCalendarLayoutCalendarIdRoute,
+    ProtectedLayoutCalendarsCalendarLayoutIndexRoute:
+      ProtectedLayoutCalendarsCalendarLayoutIndexRoute,
+  }
+
+const ProtectedLayoutCalendarsCalendarLayoutRouteWithChildren =
+  ProtectedLayoutCalendarsCalendarLayoutRoute._addFileChildren(
+    ProtectedLayoutCalendarsCalendarLayoutRouteChildren,
+  )
+
 interface ProtectedLayoutRouteChildren {
-  ProtectedLayoutCalendarsRoute: typeof ProtectedLayoutCalendarsRoute
   ProtectedLayoutHomePageRoute: typeof ProtectedLayoutHomePageRoute
   ProtectedLayoutTeamsRoute: typeof ProtectedLayoutTeamsRoute
   ProtectedLayoutIndexRoute: typeof ProtectedLayoutIndexRoute
-  ProtectedLayoutCalendarsCalendarIdRoute: typeof ProtectedLayoutCalendarsCalendarIdRoute
+  ProtectedLayoutCalendarsCalendarLayoutRoute: typeof ProtectedLayoutCalendarsCalendarLayoutRouteWithChildren
 }
 
 const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
-  ProtectedLayoutCalendarsRoute: ProtectedLayoutCalendarsRoute,
   ProtectedLayoutHomePageRoute: ProtectedLayoutHomePageRoute,
   ProtectedLayoutTeamsRoute: ProtectedLayoutTeamsRoute,
   ProtectedLayoutIndexRoute: ProtectedLayoutIndexRoute,
-  ProtectedLayoutCalendarsCalendarIdRoute:
-    ProtectedLayoutCalendarsCalendarIdRoute,
+  ProtectedLayoutCalendarsCalendarLayoutRoute:
+    ProtectedLayoutCalendarsCalendarLayoutRouteWithChildren,
 }
 
 const ProtectedLayoutRouteWithChildren = ProtectedLayoutRoute._addFileChildren(
