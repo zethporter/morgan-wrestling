@@ -1,7 +1,5 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
-import { calendarsQueryOptions } from '#/lib/calendar-opts';
-
-const LAST_CALENDAR_KEY = 'last-calendar-id';
+import { LAST_CALENDAR_KEY, calendarsQueryOptions } from '#/lib/calendar-opts';
 
 export const Route = createFileRoute(
     '/_protected/_layout/calendars/_calendarLayout/'

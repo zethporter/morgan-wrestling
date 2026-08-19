@@ -23,7 +23,9 @@ import {
 import { useRouteContext } from '@tanstack/react-router';
 
 export const NewCalendarDialog = () => {
-	const context = useRouteContext({ from: '/_protected/_layout/calendars' })
+	const context = useRouteContext({
+		from: '/_protected/_layout/calendars/_calendarLayout',
+	});
 	const { queryClient } = context;
 
 	const form = useAppForm({
