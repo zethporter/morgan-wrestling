@@ -2,7 +2,7 @@ import { createFileRoute, redirect } from '@tanstack/react-router';
 import { LAST_CALENDAR_KEY, calendarsQueryOptions } from '#/lib/calendar-opts';
 
 export const Route = createFileRoute(
-    '/_protected/_layout/calendars/_calendarLayout/'
+    '/_protected/_layout/calendars/'
 )({
     loader: async ({ context }) => {
         const calendars = await context.queryClient.ensureQueryData(

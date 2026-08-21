@@ -24,6 +24,7 @@ import {
 	CalendarDaysIcon,
 	HomeIcon,
 	SquareKanbanIcon,
+    UsersRoundIcon,
 } from 'lucide-react';
 import { UserMenu } from './user-menu';
 
@@ -50,6 +51,12 @@ const sidebarItems = linkOptions([
 		label: 'Calendars',
 		icon: <CalendarDaysIcon />,
 		to: '/calendars',
+		activeProps: { 'data-active': true },
+	},
+	{
+		label: 'Users',
+		icon: <UsersRoundIcon />,
+		to: '/users',
 		activeProps: { 'data-active': true },
 	},
 ]);
@@ -81,6 +88,7 @@ export function AppSidebar() {
 					<SidebarMenu>
 						{sidebarItems.map(({ to, label, icon, activeProps }) => (
 							<SidebarMenuButton
+								key={to}
 								tooltip={label}
 								render={
 									<Link to={to} activeProps={activeProps}>

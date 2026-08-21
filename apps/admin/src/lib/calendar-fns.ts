@@ -1,10 +1,12 @@
 import { AuthError } from '@auth/lib/auth';
-import { calendarInsertSchema, calendars } from '@morgan-wrestling/db/schema';
+import { calendarInsertSchema, calendars, calendarEvents } from '@morgan-wrestling/db/schema';
 import { createServerFn } from '@tanstack/react-start';
 import { setResponseStatus } from '@tanstack/react-start/server';
 import { nanoid } from 'nanoid';
 import { db } from '#/db';
 import { ensureSession } from '#/lib/auth-fns';
+import { z } from 'zod';
+import { eq } from '@morgan-wrestling/db/sql';
 
 export const newCalendarValidator = calendarInsertSchema.omit({
 	id: true,
@@ -51,3 +53,19 @@ export const getCalendars = createServerFn({ method: 'GET' }).handler(async () =
 	}).from(calendars)
 	return _calendars
 });
+
+export const getAllCalendarItems = createServerFn({ method: 'GET' })
+	.validator((data: unknown) => {
+		const validatedData = z.object({ calendarId: z.nanoid() }).parse(data);
+		return validatedData;
+	})
+	.handler(async ({ data }) => {
+		const { calendarId } = data;
+		const events = await db
+			.select({
+				id: calendarEvents.id,
+			})
+			.from(calendarEvents)
+			.where(eq(calendarEvents.calendarId, calendarId));
+		return events;
+	});

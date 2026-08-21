@@ -33,6 +33,7 @@ export function createAuth(config: AuthConfig) {
 			schema: authSchema,
 		}),
 		appName,
+		baseURL: process.env.BETTER_AUTH_URL,
 		emailAndPassword: {
 			enabled: true,
 			autoSignIn: true
@@ -46,7 +47,6 @@ export function createAuth(config: AuthConfig) {
 		plugins: [
 			twoFactor(),
 			oneTap(),
-			tanstackStartCookies(),
 			organization(),
 			admin({
 				adminUserIds,
@@ -62,6 +62,9 @@ export function createAuth(config: AuthConfig) {
 				],
 			}),
 			...customPlugins,
+			// Must stay last: plugins with `hooks.after` running after the cookie
+			// integration set cookies that never reach the framework cookie store.
+			tanstackStartCookies(),
 		],
 	});
 }

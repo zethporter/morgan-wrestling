@@ -1,20 +1,24 @@
-import { createFileRoute, Outlet } from '@tanstack/react-router';
+import { createFileRoute } from '@tanstack/react-router';
 import { NewCalendarDialog } from '#/components/new-calendar.tsx';
 import { CalendarDaysIcon, CalendarIcon } from 'lucide-react';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { calendarsQueryOptions } from '#/lib/calendar-opts';
+import { LAST_CALENDAR_KEY, calendarsQueryOptions } from '#/lib/calendar-opts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@morgan-wrestling/ui/components/ui/select';
 import { cn } from '@morgan-wrestling/ui';
 import { calendarColors } from '@morgan-wrestling/ui/components/calendar/calendar-utils';
 
-export const Route = createFileRoute('/_protected/_layout/calendars/_calendarLayout')({
-    loader: ({ context }) => {
-        context.queryClient.ensureQueryData(
-            calendarsQueryOptions
-        );
+
+export const Route = createFileRoute(
+  '/_protected/_layout/calendars/$calendarId',
+)({
+	component: RouteComponent,
+	loader: async ({ context, params }) => {
+		await context.queryClient.ensureQueryData(calendarsQueryOptions);
+
+		if (typeof window === 'undefined') return;
+		localStorage.setItem(LAST_CALENDAR_KEY, params.calendarId);
 	},
-    component: RouteComponent
-});
+})
 
 function RouteComponent() {
 	const { calendarId } = Route.useParams();
@@ -27,7 +31,7 @@ function RouteComponent() {
 				<div className='flex gap-2 items-center'>
 					<CalendarDaysIcon />
 					<h1 className='text-2xl font-bold'>Calendars</h1>
-					<Select value={calendarId} onValueChange={(value) => router({ to: '/calendars/$calendarId', params: { calendarId: value }})}>
+					<Select value={calendarId} onValueChange={(value) => router({ to: '/calendars/$calendarId', params: { calendarId: value ?? '' }})}>
 						<SelectTrigger>
 							<SelectValue children={(value) => {
 								const currCal = calendars.find(calendar => calendar.id === value);
@@ -50,7 +54,7 @@ function RouteComponent() {
 				</div>
 				<NewCalendarDialog />
 			</div>
-			<Outlet />
+			<div>Hello "/_protected/_layout/calendars/<span>{calendarId}</span>"!</div>
 		</div>
-	);
+	)
 }

@@ -20,13 +20,10 @@ import {
 	handleNewCalendarSubmit,
 	newCalendarValidator,
 } from '#/lib/calendar-fns';
-import { useRouteContext } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const NewCalendarDialog = () => {
-	const context = useRouteContext({
-		from: '/_protected/_layout/calendars/_calendarLayout',
-	});
-	const { queryClient } = context;
+	const queryClient = useQueryClient();
 
 	const form = useAppForm({
 		defaultValues: {
@@ -51,11 +48,9 @@ export const NewCalendarDialog = () => {
 	return (
 		<Dialog>
 			<Tooltip>
-				<TooltipTrigger>
-					<DialogTrigger render={<Button />}>
-						<CalendarPlusIcon className='stroke-3'/>
-						New Calendar
-					</DialogTrigger>
+				<TooltipTrigger render={<DialogTrigger render={<Button />} />}>
+					<CalendarPlusIcon className='stroke-3'/>
+					New Calendar
 				</TooltipTrigger>
 				<TooltipContent>Add new Calendar</TooltipContent>
 			</Tooltip>

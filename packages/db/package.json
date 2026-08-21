@@ -4,7 +4,8 @@
   "type": "module",
   "exports": {
     ".": "./src/db/index.ts",
-    "./schema": "./src/db/schema.ts"
+    "./schema": "./src/db/schema.ts",
+    "./sql": "./src/db/sql.ts"
   },
   "scripts": {
     "db:generate": "bun --bun drizzle-kit generate",
