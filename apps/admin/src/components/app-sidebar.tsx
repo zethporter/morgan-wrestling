@@ -1,3 +1,8 @@
+import { authClient } from '@morgan-wrestling/auth/lib/auth-client';
+import {
+	type PermissionRequest,
+	toRole,
+} from '@morgan-wrestling/auth/permissions';
 import { Kbd } from '@morgan-wrestling/ui/components/ui/kbd';
 import {
 	Sidebar,
@@ -24,9 +29,14 @@ import {
 	CalendarDaysIcon,
 	HomeIcon,
 	SquareKanbanIcon,
-    UsersRoundIcon,
+	UsersRoundIcon,
 } from 'lucide-react';
 import { UserMenu } from './user-menu';
+
+// Declared outside `linkOptions`, which infers its argument as `const` and
+// would otherwise make the action arrays readonly — `checkRolePermission`
+// wants mutable ones.
+const MANAGE_USERS: PermissionRequest = { user: ['list'] };
 
 const sidebarItems = linkOptions([
 	{
@@ -58,6 +68,7 @@ const sidebarItems = linkOptions([
 		icon: <UsersRoundIcon />,
 		to: '/users',
 		activeProps: { 'data-active': true },
+		permissions: MANAGE_USERS,
 	},
 ]);
 
@@ -74,9 +85,24 @@ const AppSidebarTrigger = () => {
 
 export function AppSidebar() {
 	const { toggleSidebar } = useSidebar();
+	const { data: session } = authClient.useSession();
 	useHotkey('Control+B', () => toggleSidebar(), {
 		conflictBehavior: 'replace',
 	});
+
+	// Cosmetic only — `checkRolePermission` resolves locally against the shared
+	// access control, so it costs no round trip, but the route's `beforeLoad`
+	// and the server fns are what actually enforce this.
+	const role = toRole(session?.user.role);
+	const visibleItems = sidebarItems.filter(
+		(item) =>
+			!('permissions' in item) ||
+			authClient.admin.checkRolePermission({
+				role,
+				permissions: item.permissions,
+			}),
+	);
+
 	return (
 		<Sidebar variant='sidebar' collapsible='icon'>
 			<SidebarHeader>
@@ -86,7 +112,7 @@ export function AppSidebar() {
 				<SidebarGroup>
 					<SidebarGroupLabel>Something that makes sense</SidebarGroupLabel>
 					<SidebarMenu>
-						{sidebarItems.map(({ to, label, icon, activeProps }) => (
+						{visibleItems.map(({ to, label, icon, activeProps }) => (
 							<SidebarMenuButton
 								key={to}
 								tooltip={label}

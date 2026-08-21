@@ -1,10 +1,14 @@
 import { drizzleAdapter } from '@better-auth/drizzle-adapter';
 import { betterAuth } from 'better-auth';
-import { adminClient } from 'better-auth/client/plugins';
-import { admin, oneTap, organization, twoFactor } from 'better-auth/plugins';
+import {
+	admin as adminPlugin,
+	oneTap,
+	organization,
+	twoFactor,
+} from 'better-auth/plugins';
 import { tanstackStartCookies } from 'better-auth/tanstack-start';
 import type { createAuthDb } from './db';
-import { ac, guest, manager, user } from './permissions';
+import { ac, roles } from './permissions';
 import * as authSchema from './schema';
 
 export type AuthPlugin = Parameters<typeof betterAuth>[0]['plugins'][number];
@@ -36,7 +40,7 @@ export function createAuth(config: AuthConfig) {
 		baseURL: process.env.BETTER_AUTH_URL,
 		emailAndPassword: {
 			enabled: true,
-			autoSignIn: true
+			autoSignIn: true,
 		},
 		socialProviders: {
 			google: {
@@ -48,18 +52,12 @@ export function createAuth(config: AuthConfig) {
 			twoFactor(),
 			oneTap(),
 			organization(),
-			admin({
+			adminPlugin({
 				adminUserIds,
-				plugins: [
-					adminClient({
-						ac,
-						roles: {
-							manager,
-							user,
-							guest,
-						},
-					}),
-				],
+				ac,
+				roles,
+				defaultRole: 'user',
+				adminRoles: ['admin'],
 			}),
 			...customPlugins,
 			// Must stay last: plugins with `hooks.after` running after the cookie

@@ -5,6 +5,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./schema": "./src/schema.ts",
+    "./permissions": "./src/permissions.ts",
     "./lib/auth": "./src/lib/auth.ts",
     "./lib/auth-client": "./src/lib/auth-client.ts"
   },

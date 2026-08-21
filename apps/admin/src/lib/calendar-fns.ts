@@ -1,4 +1,3 @@
-import { AuthError } from '@morgan-wrestling/auth/lib/auth';
 import {
 	calendarEvents,
 	calendarInsertSchema,
@@ -6,11 +5,10 @@ import {
 } from '@morgan-wrestling/db/schema';
 import { eq } from '@morgan-wrestling/db/sql';
 import { createServerFn } from '@tanstack/react-start';
-import { setResponseStatus } from '@tanstack/react-start/server';
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
 import { db } from '#/db';
-import { ensureSession } from '#/lib/auth-fns';
+import { requirePermission, throwAsResponse } from '#/lib/auth-fns';
 
 export const newCalendarValidator = calendarInsertSchema.omit({
 	id: true,
@@ -27,7 +25,7 @@ export const handleNewCalendarSubmit = createServerFn({ method: 'POST' })
 	})
 	.handler(async ({ data }) => {
 		try {
-			const session = await ensureSession();
+			const session = await requirePermission({ calendar: ['create'] });
 			const creationDate = new Date();
 			await db.insert(calendars).values({
 				...data,
@@ -40,27 +38,26 @@ export const handleNewCalendarSubmit = createServerFn({ method: 'POST' })
 				updatedAt: creationDate,
 			});
 		} catch (e) {
-			console.error({ e });
-			if (e instanceof AuthError) {
-				setResponseStatus(e.statusCode);
-				throw new Error(e.message);
-			}
-			setResponseStatus(500);
-			throw new Error('Unhandled Internal Error');
+			throwAsResponse(e);
 		}
 		return 'Successfully created calendar';
 	});
 
 export const getCalendars = createServerFn({ method: 'GET' }).handler(
 	async () => {
-		const _calendars = await db
-			.select({
-				id: calendars.id,
-				name: calendars.name,
-				color: calendars.color,
-			})
-			.from(calendars);
-		return _calendars;
+		try {
+			await requirePermission({ calendar: ['read'] });
+			const _calendars = await db
+				.select({
+					id: calendars.id,
+					name: calendars.name,
+					color: calendars.color,
+				})
+				.from(calendars);
+			return _calendars;
+		} catch (e) {
+			throwAsResponse(e);
+		}
 	},
 );
 
@@ -70,12 +67,17 @@ export const getAllCalendarItems = createServerFn({ method: 'GET' })
 		return validatedData;
 	})
 	.handler(async ({ data }) => {
-		const { calendarId } = data;
-		const events = await db
-			.select({
-				id: calendarEvents.id,
-			})
-			.from(calendarEvents)
-			.where(eq(calendarEvents.calendarId, calendarId));
-		return events;
+		try {
+			await requirePermission({ calendarEvent: ['read'] });
+			const { calendarId } = data;
+			const events = await db
+				.select({
+					id: calendarEvents.id,
+				})
+				.from(calendarEvents)
+				.where(eq(calendarEvents.calendarId, calendarId));
+			return events;
+		} catch (e) {
+			throwAsResponse(e);
+		}
 	});
