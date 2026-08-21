@@ -4,7 +4,9 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./schema": "./src/schema.ts"
+    "./schema": "./src/schema.ts",
+    "./lib/auth": "./src/lib/auth.ts",
+    "./lib/auth-client": "./src/lib/auth-client.ts"
   },
   "scripts": {
     "auth:generate": "bun x auth@v1.7.0-rc.1 generate --config ./src/config.ts --output ./src/schema.ts",

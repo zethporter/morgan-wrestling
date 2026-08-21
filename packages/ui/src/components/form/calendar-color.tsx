@@ -1,6 +1,6 @@
 // import { cva } from "class-variance-authority"; // Possibly could use for more consistent input styling.
 
-import { cn } from '@ui/lib/utils';
+import { cn } from '@morgan-wrestling/ui/lib/utils';
 import { CalendarIcon } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { useFieldContext } from '../../hooks/use-form';

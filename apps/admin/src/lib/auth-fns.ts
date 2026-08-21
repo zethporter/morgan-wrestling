@@ -1,4 +1,4 @@
-import { AuthError, auth } from '@auth/lib/auth';
+import { AuthError, auth } from '@morgan-wrestling/auth/lib/auth';
 import { createServerFn } from '@tanstack/react-start';
 import { getRequestHeaders } from '@tanstack/react-start/server';
 

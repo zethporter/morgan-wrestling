@@ -6,9 +6,9 @@ import {
 	CardTitle,
 } from '@morgan-wrestling/ui/components/ui/card';
 import { createFileRoute } from '@tanstack/react-router';
-import { useAppForm } from '@ui/hooks/use-form';
+import { useAppForm } from '@morgan-wrestling/ui/hooks/use-form';
 import { z } from 'zod';
-import { authClient } from '@auth/lib/auth-client';
+import { authClient } from '@morgan-wrestling/auth/lib/auth-client';
 
 const loginSchema = z.object({
 	username: z.email(),

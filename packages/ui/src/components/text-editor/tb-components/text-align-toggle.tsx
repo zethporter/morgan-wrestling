@@ -1,7 +1,7 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
-import { Skeleton } from '@ui/components/ui/skeleton';
-import { ToggleGroup, ToggleGroupItem } from '@ui/components/ui/toggle-group';
-import { cn } from '@ui/lib/utils';
+import { Skeleton } from '@morgan-wrestling/ui/components/ui/skeleton';
+import { ToggleGroup, ToggleGroupItem } from '@morgan-wrestling/ui/components/ui/toggle-group';
+import { cn } from '@morgan-wrestling/ui/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import {
 	TextAlignCenterIcon,

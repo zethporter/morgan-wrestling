@@ -1,34 +1,12 @@
 {
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ],
+  "extends": "../../tsconfig.base.json",
+  "include": ["**/*.ts", "**/*.tsx"],
   "compilerOptions": {
-    "target": "ES2022",
     "jsx": "react-jsx",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
-    "verbatimModuleSyntax": true,
-    "noEmit": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    // Self-reference by real package name; see the note in apps/admin/tsconfig.json.
     "paths": {
-      "@morgan-wrestling/ui/*": [
-        "./src/*"
-      ],
-      "@ui/*": [
-        "./src/*"
-      ]
+      "@morgan-wrestling/ui/*": ["./src/*"]
     }
   }
 }

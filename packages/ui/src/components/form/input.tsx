@@ -1,7 +1,7 @@
 // import { cva } from "class-variance-authority"; // Possibly could use for more consistent input styling.
 
 import { useFieldContext } from '@morgan-wrestling/ui/hooks/use-form';
-import { cn } from '@ui/lib/utils';
+import { cn } from '@morgan-wrestling/ui/lib/utils';
 import type { ComponentProps } from 'react';
 import { Field, FieldError, FieldLabel } from '../ui/field';
 import { Input } from '../ui/input';

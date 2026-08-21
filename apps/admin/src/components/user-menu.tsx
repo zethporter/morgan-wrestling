@@ -17,7 +17,7 @@ import {
 } from '@morgan-wrestling/ui/components/ui/dropdown-menu';
 import { useRouter } from '@tanstack/react-router';
 import { LogOutIcon } from 'lucide-react';
-import { authClient } from '@auth/lib/auth-client';
+import { authClient } from '@morgan-wrestling/auth/lib/auth-client';
 
 export const UserMenu = () => {
 	const router = useRouter();

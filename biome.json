@@ -48,7 +48,7 @@
 	},
 	"css": {
 		"parser": {
-			"allowTailwindFunctions": true
+			"tailwindDirectives": true
 		}
 	}
 }

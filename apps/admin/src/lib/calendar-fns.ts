@@ -1,12 +1,16 @@
-import { AuthError } from '@auth/lib/auth';
-import { calendarInsertSchema, calendars, calendarEvents } from '@morgan-wrestling/db/schema';
+import { AuthError } from '@morgan-wrestling/auth/lib/auth';
+import {
+	calendarEvents,
+	calendarInsertSchema,
+	calendars,
+} from '@morgan-wrestling/db/schema';
+import { eq } from '@morgan-wrestling/db/sql';
 import { createServerFn } from '@tanstack/react-start';
 import { setResponseStatus } from '@tanstack/react-start/server';
 import { nanoid } from 'nanoid';
+import { z } from 'zod';
 import { db } from '#/db';
 import { ensureSession } from '#/lib/auth-fns';
-import { z } from 'zod';
-import { eq } from '@morgan-wrestling/db/sql';
 
 export const newCalendarValidator = calendarInsertSchema.omit({
 	id: true,
@@ -28,8 +32,10 @@ export const handleNewCalendarSubmit = createServerFn({ method: 'POST' })
 			await db.insert(calendars).values({
 				...data,
 				id: nanoid(),
-				createdBy: session.user.email,
-				updatedBy: session.user.email,
+				// user.id, not user.email — better-auth lets users change their email,
+				// and these columns have no FK to fix up (auth lives in a separate DB).
+				createdBy: session.user.id,
+				updatedBy: session.user.id,
 				createdAt: creationDate,
 				updatedAt: creationDate,
 			});
@@ -45,14 +51,18 @@ export const handleNewCalendarSubmit = createServerFn({ method: 'POST' })
 		return 'Successfully created calendar';
 	});
 
-export const getCalendars = createServerFn({ method: 'GET' }).handler(async () => {
-	const _calendars = await db.select({
-		id: calendars.id,
-		name: calendars.name,
-		color: calendars.color
-	}).from(calendars)
-	return _calendars
-});
+export const getCalendars = createServerFn({ method: 'GET' }).handler(
+	async () => {
+		const _calendars = await db
+			.select({
+				id: calendars.id,
+				name: calendars.name,
+				color: calendars.color,
+			})
+			.from(calendars);
+		return _calendars;
+	},
+);
 
 export const getAllCalendarItems = createServerFn({ method: 'GET' })
 	.validator((data: unknown) => {
