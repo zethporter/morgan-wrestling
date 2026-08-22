@@ -1,3 +1,4 @@
+import { authClient } from '@morgan-wrestling/auth/lib/auth-client';
 import {
 	Card,
 	CardContent,
@@ -5,10 +6,9 @@ import {
 	CardFooter,
 	CardTitle,
 } from '@morgan-wrestling/ui/components/ui/card';
-import { createFileRoute } from '@tanstack/react-router';
 import { useAppForm } from '@morgan-wrestling/ui/hooks/use-form';
+import { createFileRoute } from '@tanstack/react-router';
 import { z } from 'zod';
-import { authClient } from '@morgan-wrestling/auth/lib/auth-client';
 
 const loginSchema = z.object({
 	username: z.email(),
@@ -16,12 +16,12 @@ const loginSchema = z.object({
 });
 
 const searchSchema = z.object({
-	redirect: z.string().optional()
-})
+	redirect: z.string().optional(),
+});
 
 export const Route = createFileRoute('/log-in')({
 	component: RouteComponent,
-	validateSearch: searchSchema
+	validateSearch: searchSchema,
 });
 
 function RouteComponent() {
@@ -38,8 +38,8 @@ function RouteComponent() {
 			await authClient.signIn.email({
 				email: value.username,
 				password: value.password,
-				callbackURL: redirect
-			})
+				callbackURL: redirect,
+			});
 		},
 	});
 
@@ -79,10 +79,14 @@ function RouteComponent() {
 						>
 							Log In
 						</form.SubmitButton>
-						<form.GoogleSignInButton onClick={async () => await authClient.signIn.social({
-							provider: 'google',
-							callbackURL: redirect
-						})} />
+						<form.GoogleSignInButton
+							onClick={async () =>
+								await authClient.signIn.social({
+									provider: 'google',
+									callbackURL: redirect,
+								})
+							}
+						/>
 					</CardFooter>
 				</form.AppForm>
 			</Card>

@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "^1.6.26",
+    "@tursodatabase/serverless": "^1.4.0",
     "better-auth": "^1.6.26",
     "drizzle-kit": "1.0.0-rc.4",
     "drizzle-orm": "1.0.0-rc.4"

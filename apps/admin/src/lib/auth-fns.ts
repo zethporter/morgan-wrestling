@@ -1,6 +1,6 @@
 import { AuthError, auth } from '@morgan-wrestling/auth/lib/auth';
 import type { PermissionRequest } from '@morgan-wrestling/auth/permissions';
-import { createServerFn } from '@tanstack/react-start';
+import { createServerFn, createServerOnlyFn } from '@tanstack/react-start';
 import {
 	getRequestHeaders,
 	setResponseStatus,
@@ -32,8 +32,15 @@ export const ensureSession = createServerFn({ method: 'GET' }).handler(
  * Server-only guard for use inside a server fn handler. Throws `AuthError` 401
  * when signed out and 403 when the caller's role lacks any of `permissions`.
  * Returns the session so handlers can reuse `session.user.id`.
+ *
+ * Wrapped in `createServerOnlyFn` so the body — and with it the
+ * `@tanstack/react-start/server` and better-auth imports — is stripped from the
+ * client bundle. A plain exported function can't be pruned, which drags
+ * better-auth's libsql driver into the browser and breaks every route.
  */
-export async function requirePermission(permissions: PermissionRequest) {
+export const requirePermission = createServerOnlyFn(async (
+	permissions: PermissionRequest,
+) => {
 	const headers = getRequestHeaders();
 	const session = await auth.api.getSession({ headers });
 
@@ -53,7 +60,7 @@ export async function requirePermission(permissions: PermissionRequest) {
 	}
 
 	return session;
-}
+});
 
 /**
  * Non-throwing counterpart to `requirePermission`, callable from the router.
@@ -81,7 +88,7 @@ export const checkPermission = createServerFn({ method: 'GET' })
  * Turns a caught error into a response with the right status. `AuthError`
  * keeps its code; anything else is reported as an opaque 500.
  */
-export function throwAsResponse(e: unknown): never {
+export const throwAsResponse = createServerOnlyFn((e: unknown): never => {
 	console.error({ e });
 
 	if (e instanceof AuthError) {
@@ -91,4 +98,4 @@ export function throwAsResponse(e: unknown): never {
 
 	setResponseStatus(500);
 	throw new Error('Unhandled Internal Error');
-}
+});
