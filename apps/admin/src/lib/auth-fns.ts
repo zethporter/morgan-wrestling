@@ -5,6 +5,7 @@ import {
 	getRequestHeaders,
 	setResponseStatus,
 } from '@tanstack/react-start/server';
+import { z } from 'zod';
 
 export const getSession = createServerFn({ method: 'GET' }).handler(
 	async () => {
@@ -38,32 +39,32 @@ export const ensureSession = createServerFn({ method: 'GET' }).handler(
  * client bundle. A plain exported function can't be pruned, which drags
  * better-auth's libsql driver into the browser and breaks every route.
  */
-export const requirePermission = createServerOnlyFn(async (
-	permissions: PermissionRequest,
-) => {
-	const headers = getRequestHeaders();
-	// One instance for both calls: it is request-scoped, so reusing it here is
-	// safe and saves a second connection.
-	const auth = getAuth();
-	const session = await auth.api.getSession({ headers });
+export const requirePermission = createServerOnlyFn(
+	async (permissions: PermissionRequest) => {
+		const headers = getRequestHeaders();
+		// One instance for both calls: it is request-scoped, so reusing it here is
+		// safe and saves a second connection.
+		const auth = getAuth();
+		const session = await auth.api.getSession({ headers });
 
-	if (!session) {
-		throw new AuthError('User Not Authenticated', 401);
-	}
+		if (!session) {
+			throw new AuthError('User Not Authenticated', 401);
+		}
 
-	const { success } = await auth.api.userHasPermission({
-		// Deliberately no `headers`: better-auth prefers the session user when
-		// headers are present, but resolves the role from the user record when
-		// given a bare `userId`. We already authenticated that id above.
-		body: { userId: session.user.id, permissions },
-	});
+		const { success } = await auth.api.userHasPermission({
+			// Deliberately no `headers`: better-auth prefers the session user when
+			// headers are present, but resolves the role from the user record when
+			// given a bare `userId`. We already authenticated that id above.
+			body: { userId: session.user.id, permissions },
+		});
 
-	if (!success) {
-		throw new AuthError('Insufficient Permissions', 403);
-	}
+		if (!success) {
+			throw new AuthError('Insufficient Permissions', 403);
+		}
 
-	return session;
-});
+		return session;
+	},
+);
 
 /**
  * Non-throwing counterpart to `requirePermission`, callable from the router.
@@ -86,6 +87,43 @@ export const checkPermission = createServerFn({ method: 'GET' })
 		});
 
 		return success;
+	});
+
+export const getSessionInfo = createServerFn({ method: 'GET' }).handler(
+	async () => {
+		const headers = getRequestHeaders();
+		const auth = getAuth();
+		const session = await auth.api.getSession({ headers });
+
+		if (!session) {
+			return null;
+		}
+
+		return {
+			user: session.user,
+			session: session.session,
+		};
+	},
+);
+
+const selfAdminSchema = z.object({ id: z.string() });
+// This function is extremely dangerous and should only be used in development.
+export const giveSelfAdmin = createServerFn({ method: 'POST' })
+	.validator((data: unknown) => {
+		return selfAdminSchema.parse(data);
+	})
+	.handler(async ({ data }) => {
+		const headers = getRequestHeaders();
+		const auth = getAuth();
+
+		const result = await auth.api.setRole({
+			body: {
+				userId: data.id,
+				role: ['admin'],
+			},
+			headers,
+		});
+		return result;
 	});
 
 /**

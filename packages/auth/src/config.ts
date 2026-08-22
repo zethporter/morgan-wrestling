@@ -26,7 +26,7 @@ export interface AuthConfig {
 export function createAuth(config: AuthConfig) {
 	const {
 		db,
-		appName = 'Wrestler of the Day',
+		appName = 'Morgan Wrestling Admin',
 		adminUserIds = [],
 		plugins: customPlugins = [],
 	} = config;
