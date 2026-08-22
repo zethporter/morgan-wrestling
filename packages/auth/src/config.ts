@@ -66,3 +66,5 @@ export function createAuth(config: AuthConfig) {
 		],
 	});
 }
+
+export default createAuth;
