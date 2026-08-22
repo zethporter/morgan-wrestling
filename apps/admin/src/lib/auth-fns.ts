@@ -1,4 +1,4 @@
-import { AuthError, auth } from '@morgan-wrestling/auth/lib/auth';
+import { AuthError, getAuth } from '@morgan-wrestling/auth/lib/auth';
 import type { PermissionRequest } from '@morgan-wrestling/auth/permissions';
 import { createServerFn, createServerOnlyFn } from '@tanstack/react-start';
 import {
@@ -9,7 +9,7 @@ import {
 export const getSession = createServerFn({ method: 'GET' }).handler(
 	async () => {
 		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
+		const session = await getAuth().api.getSession({ headers });
 
 		return session;
 	},
@@ -18,7 +18,7 @@ export const getSession = createServerFn({ method: 'GET' }).handler(
 export const ensureSession = createServerFn({ method: 'GET' }).handler(
 	async () => {
 		const headers = getRequestHeaders();
-		const session = await auth.api.getSession({ headers });
+		const session = await getAuth().api.getSession({ headers });
 
 		if (!session) {
 			throw new AuthError('User Not Authenticated', 401);
@@ -42,6 +42,9 @@ export const requirePermission = createServerOnlyFn(async (
 	permissions: PermissionRequest,
 ) => {
 	const headers = getRequestHeaders();
+	// One instance for both calls: it is request-scoped, so reusing it here is
+	// safe and saves a second connection.
+	const auth = getAuth();
 	const session = await auth.api.getSession({ headers });
 
 	if (!session) {
@@ -71,6 +74,7 @@ export const checkPermission = createServerFn({ method: 'GET' })
 	.validator((data: PermissionRequest) => data)
 	.handler(async ({ data }) => {
 		const headers = getRequestHeaders();
+		const auth = getAuth();
 		const session = await auth.api.getSession({ headers });
 
 		if (!session) {

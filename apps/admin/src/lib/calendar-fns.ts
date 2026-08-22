@@ -7,7 +7,7 @@ import { eq } from '@morgan-wrestling/db/sql';
 import { createServerFn } from '@tanstack/react-start';
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
-import { db } from '#/db';
+import { getDb } from '#/db';
 import { requirePermission, throwAsResponse } from '#/lib/auth-fns';
 
 export const newCalendarValidator = calendarInsertSchema.omit({
@@ -27,7 +27,7 @@ export const handleNewCalendarSubmit = createServerFn({ method: 'POST' })
 		try {
 			const session = await requirePermission({ calendar: ['create'] });
 			const creationDate = new Date();
-			await db.insert(calendars).values({
+			await getDb().insert(calendars).values({
 				...data,
 				id: nanoid(),
 				// user.id, not user.email — better-auth lets users change their email,
@@ -47,7 +47,7 @@ export const getCalendars = createServerFn({ method: 'GET' }).handler(
 	async () => {
 		try {
 			await requirePermission({ calendar: ['read'] });
-			const _calendars = await db
+			const _calendars = await getDb()
 				.select({
 					id: calendars.id,
 					name: calendars.name,
@@ -70,7 +70,7 @@ export const getAllCalendarItems = createServerFn({ method: 'GET' })
 		try {
 			await requirePermission({ calendarEvent: ['read'] });
 			const { calendarId } = data;
-			const events = await db
+			const events = await getDb()
 				.select({
 					id: calendarEvents.id,
 				})

@@ -7,7 +7,7 @@ import { createServerFn } from '@tanstack/react-start';
 import { setResponseStatus } from '@tanstack/react-start/server';
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
-import { db, teamInsertSchema, teams } from '#/db';
+import { getDb, teamInsertSchema, teams } from '#/db';
 import { newTeamFormOpts } from '#/form-handlers/teams';
 
 // import { ensureSession } from "./auth-fns";
@@ -52,7 +52,7 @@ export const createTeam = createServerFn({ method: 'POST' })
 		try {
 			const validatedData = await createTeamServerValidate(data);
 
-			await db.insert(teams).values(validatedData);
+			await getDb().insert(teams).values(validatedData);
 			// return team;
 		} catch (error) {
 			if (error instanceof ServerValidateError) {
