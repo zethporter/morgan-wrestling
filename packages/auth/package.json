@@ -10,7 +10,7 @@
     "./lib/auth-client": "./src/lib/auth-client.ts"
   },
   "scripts": {
-    "auth:generate": "bun x auth generate --config ./src/config.ts --output ./src/schema.ts",
+    "auth:generate": "bun run ./scripts/generate-schema.ts",
     "db:generate": "bun --bun drizzle-kit generate",
     "db:migrate": "bun --bun drizzle-kit migrate",
     "db:up": "bun --bun drizzle-kit up",

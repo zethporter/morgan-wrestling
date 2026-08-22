@@ -1,11 +1,5 @@
 import { defineRelationsPart, sql } from 'drizzle-orm';
-import {
-	sqliteTable,
-	text,
-	integer,
-	index,
-	uniqueIndex,
-} from 'drizzle-orm/sqlite-core';
+import { index, integer, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
 export const user = sqliteTable('user', {
 	id: text('id').primaryKey(),
@@ -121,18 +115,14 @@ export const twoFactor = sqliteTable(
 	],
 );
 
-export const organization = sqliteTable(
-	'organization',
-	{
-		id: text('id').primaryKey(),
-		name: text('name').notNull(),
-		slug: text('slug').notNull().unique(),
-		logo: text('logo'),
-		createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
-		metadata: text('metadata'),
-	},
-	(table) => [uniqueIndex('organization_slug_uidx').on(table.slug)],
-);
+export const organization = sqliteTable('organization', {
+	id: text('id').primaryKey(),
+	name: text('name').notNull(),
+	slug: text('slug').notNull().unique(),
+	logo: text('logo'),
+	createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
+	metadata: text('metadata'),
+});
 
 export const member = sqliteTable(
 	'member',
