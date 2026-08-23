@@ -1,4 +1,8 @@
-import { AuthError, getAuth } from '@morgan-wrestling/auth/lib/auth';
+import {
+	AuthError,
+	type BetterAuthUser,
+	getAuth,
+} from '@morgan-wrestling/auth/lib/auth';
 import type { PermissionRequest } from '@morgan-wrestling/auth/permissions';
 import { createServerFn, createServerOnlyFn } from '@tanstack/react-start';
 import {
@@ -106,12 +110,9 @@ export const getSessionInfo = createServerFn({ method: 'GET' }).handler(
 	},
 );
 
-const selfAdminSchema = z.object({ id: z.string() });
-// This function is extremely dangerous and should only be used in development.
-export const giveSelfAdmin = createServerFn({ method: 'POST' })
-	.validator((data: unknown) => {
-		return selfAdminSchema.parse(data);
-	})
+const adminToggleSchema = z.object({ id: z.string() });
+export const setAdminRole = createServerFn({ method: 'POST' })
+	.validator(adminToggleSchema)
 	.handler(async ({ data }) => {
 		const headers = getRequestHeaders();
 		const auth = getAuth();
@@ -124,6 +125,52 @@ export const giveSelfAdmin = createServerFn({ method: 'POST' })
 			headers,
 		});
 		return result;
+	});
+export const removeAdminRole = createServerFn({ method: 'POST' })
+	.validator(adminToggleSchema)
+	.handler(async ({ data }) => {
+		const headers = getRequestHeaders();
+		const auth = getAuth();
+
+		const result = await auth.api.setRole({
+			body: {
+				userId: data.id,
+				role: ['guest'],
+			},
+			headers,
+		});
+		return result;
+	});
+
+interface UsersPageData {
+	users: Array<BetterAuthUser>;
+	totalPages: number;
+	currentPage: number;
+}
+const usersPage = z.object({
+	page: z.number().min(1).default(1),
+	pageSize: z.number().min(1).max(50).default(10),
+});
+export const getUsersPage = createServerFn({ method: 'GET' })
+	.validator(usersPage)
+	.handler(async ({ data }): Promise<UsersPageData> => {
+		const headers = getRequestHeaders();
+		const auth = getAuth();
+
+		const pageSize = 10;
+		const currentPage = data.page;
+
+		const users = await auth.api.listUsers({
+			query: {
+				limit: pageSize,
+				offset: (currentPage - 1) * pageSize,
+			},
+			headers,
+		});
+
+		const totalUsers = users.total;
+		const totalPages = Math.ceil(totalUsers / pageSize);
+		return { ...users, currentPage, totalPages };
 	});
 
 /**

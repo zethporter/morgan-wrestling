@@ -29,6 +29,9 @@ export function getAuth() {
 	});
 }
 
+type AuthInstance = ReturnType<typeof getAuth>;
+export type BetterAuthUser = AuthInstance['$Infer']['Session']['user'];
+
 export class AuthError extends Error {
 	statusCode: number;
 
