@@ -21,6 +21,7 @@ export const calendars = sqliteTable('calendars', {
 });
 export const calendarInsertSchema = createInsertSchema(calendars);
 export const calendarSelectSchema = createSelectSchema(calendars);
+export const calendarUpdateSchema = createUpdateSchema(calendars);
 
 export const calendarEventTypes = sqliteTable('calendar_event_types', {
 	id: integer({ mode: 'number' }).primaryKey({
@@ -40,6 +41,8 @@ export const calendarEventTypeInsertSchema =
 	createInsertSchema(calendarEventTypes);
 export const calendarEventTypeSelectSchema =
 	createSelectSchema(calendarEventTypes);
+export const calendarEventTypeUpdateSchema =
+	createUpdateSchema(calendarEventTypes);
 
 export const calendarEvents = sqliteTable('calendar_events', {
 	id: integer({ mode: 'number' }).primaryKey({
@@ -72,6 +75,7 @@ export const calendarEvents = sqliteTable('calendar_events', {
 });
 export const calendarEventInsertSchema = createInsertSchema(calendarEvents);
 export const calendarEventSelectSchema = createSelectSchema(calendarEvents);
+export const calendarEventUpdateSchema = createUpdateSchema(calendarEvents);
 
 export const teams = sqliteTable('teams', {
 	id: text({ mode: 'text' }).primaryKey(),

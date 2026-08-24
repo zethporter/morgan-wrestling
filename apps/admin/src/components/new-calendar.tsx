@@ -15,12 +15,9 @@ import {
 	TooltipTrigger,
 } from '@morgan-wrestling/ui/components/ui/tooltip';
 import { useAppForm } from '@morgan-wrestling/ui/hooks/use-form';
-import { CalendarPlusIcon } from 'lucide-react';
-import {
-	handleNewCalendarSubmit,
-	newCalendarValidator,
-} from '#/lib/calendar-fns';
 import { useQueryClient } from '@tanstack/react-query';
+import { CalendarPlusIcon } from 'lucide-react';
+import { insertCalendar, newCalendarValidator } from '#/lib/calendar-fns';
 
 export const NewCalendarDialog = () => {
 	const queryClient = useQueryClient();
@@ -31,7 +28,7 @@ export const NewCalendarDialog = () => {
 			color: 'slate',
 		},
 		onSubmit: async ({ value }) => {
-			await toast.promise(handleNewCalendarSubmit({ data: value }), {
+			await toast.promise(insertCalendar({ data: value }), {
 				loading: 'Creating calendar...',
 				success: (res) => {
 					queryClient.invalidateQueries({ queryKey: ['calendars'] });
@@ -49,7 +46,7 @@ export const NewCalendarDialog = () => {
 		<Dialog>
 			<Tooltip>
 				<TooltipTrigger render={<DialogTrigger render={<Button />} />}>
-					<CalendarPlusIcon className='stroke-3'/>
+					<CalendarPlusIcon className='stroke-3' />
 					New Calendar
 				</TooltipTrigger>
 				<TooltipContent>Add new Calendar</TooltipContent>
@@ -70,15 +67,11 @@ export const NewCalendarDialog = () => {
 				</DialogHeader>
 				<form.AppField
 					name='name'
-					children={(field) => (
-						<field.FormInput label='Calendar Name' />
-					)}
+					children={(field) => <field.FormInput label='Calendar Name' />}
 				/>
 				<form.AppField
 					name='color'
-					children={(field) => (
-						<field.FormCalendarColor label='Color' />
-					)}
+					children={(field) => <field.FormCalendarColor label='Color' />}
 				/>
 				<DialogFooter>
 					<form.Subscribe selector={(formState) => [formState.canSubmit]}>
