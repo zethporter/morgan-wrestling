@@ -120,7 +120,7 @@ export const teamPages = sqliteTable('team_pages', {
 	updatedBy: text('updated_by').notNull(),
 });
 export const teamPageInsertSchema = createInsertSchema(teamPages);
-export const teamPageSelectSchema = createSelectSchema(teamPages);
+export const teamPageUpdateSchema = createUpdateSchema(teamPages);
 
 export const quickLinks = sqliteTable('quick_links', {
 	id: integer({ mode: 'number' }).primaryKey({
@@ -128,6 +128,7 @@ export const quickLinks = sqliteTable('quick_links', {
 	}),
 	title: text().notNull(),
 	url: text().notNull(),
+	active: integer({ mode: 'boolean' }).default(false),
 	createdAt: integer('created_at', { mode: 'timestamp' }).default(
 		sql`(unixepoch())`,
 	),
@@ -138,7 +139,7 @@ export const quickLinks = sqliteTable('quick_links', {
 	updatedBy: text('updated_by').notNull(),
 });
 export const quickLinkInsertSchema = createInsertSchema(quickLinks);
-export const quickLinkSelectSchema = createSelectSchema(quickLinks);
+export const quickLinkUpdateSchema = createUpdateSchema(quickLinks);
 
 export const teamQuickLinks = sqliteTable('team_quick_links', {
 	id: integer({ mode: 'number' }).primaryKey({
@@ -149,6 +150,7 @@ export const teamQuickLinks = sqliteTable('team_quick_links', {
 	}),
 	title: text().notNull(),
 	url: text().notNull(),
+	active: integer({ mode: 'boolean' }).default(false),
 	createdAt: integer('created_at', { mode: 'timestamp' }).default(
 		sql`(unixepoch())`,
 	),
@@ -159,4 +161,4 @@ export const teamQuickLinks = sqliteTable('team_quick_links', {
 	updatedBy: text('updated_by').notNull(),
 });
 export const teamQuickLinkInsertSchema = createInsertSchema(teamQuickLinks);
-export const teamQuickLinkSelectSchema = createSelectSchema(teamQuickLinks);
+export const teamQuickLinkUpdateSchema = createUpdateSchema(teamQuickLinks);

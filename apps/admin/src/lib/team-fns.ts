@@ -3,22 +3,22 @@ import { createServerFn } from '@tanstack/react-start';
 import { setResponseStatus } from '@tanstack/react-start/server';
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
-import { getDb, teamInsertSchema, teams, teamUpdateSchema } from '#/db';
+import {
+	getDb,
+	quickLinkInsertSchema,
+	quickLinks,
+	quickLinkUpdateSchema,
+	teamInsertSchema,
+	teamPageInsertSchema,
+	teamPages,
+	teamPageUpdateSchema,
+	teamQuickLinkInsertSchema,
+	teamQuickLinks,
+	teamQuickLinkUpdateSchema,
+	teams,
+	teamUpdateSchema,
+} from '#/db';
 import { requirePermission } from './auth-fns';
-
-// import { ensureSession } from "./auth-fns";
-
-// export const createPost = createServerFn({ method: "POST" })
-//   .inputValidator((data: { title: string }) => data)
-//   .handler(async ({ data }) => {
-//     const session = await ensureSession();
-//     const post = await db.posts.create({
-//       title: data.title,
-//       authorId: session.user.id,
-//     });
-
-//     return post;
-//   });
 
 const normalizeName = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
 
@@ -118,4 +118,212 @@ export const getTeam = createServerFn({ method: 'GET' })
 			})
 			.from(teams)
 			.where(eq(teams.id, data.id));
+	});
+
+const insertQuickLinkSchema = quickLinkInsertSchema.omit({
+	id: true,
+	createdAt: true,
+	updatedAt: true,
+	updatedBy: true,
+	createdBy: true,
+});
+export const insertQuickLink = createServerFn({ method: 'POST' })
+	.validator(insertQuickLinkSchema)
+	.handler(async ({ data }) => {
+		const session = await requirePermission({ quickLink: ['create'] });
+		const today = new Date();
+		return getDb()
+			.insert(quickLinks)
+			.values({
+				...data,
+				createdBy: session.user.id,
+				updatedBy: session.user.id,
+				createdAt: today,
+				updatedAt: today,
+			})
+			.returning({
+				id: quickLinks.id,
+				title: quickLinks.title,
+				url: quickLinks.url,
+				active: quickLinks.active,
+			});
+	});
+
+const updateQuickLinkSchema = z.object({
+	id: z.number(),
+	values: quickLinkUpdateSchema.omit({
+		id: true,
+		createdAt: true,
+		createdBy: true,
+		updatedAt: true,
+		updatedBy: true,
+	}),
+});
+export const updateQuickLink = createServerFn({ method: 'POST' })
+	.validator(updateQuickLinkSchema)
+	.handler(async ({ data }) => {
+		const session = await requirePermission({ quickLink: ['update'] });
+		const today = new Date();
+		return await getDb()
+			.update(quickLinks)
+			.set({ ...data.values, updatedBy: session.user.id, updatedAt: today })
+			.where(eq(quickLinks.id, data.id))
+			.returning({
+				id: quickLinks.id,
+				title: quickLinks.title,
+				url: quickLinks.url,
+				active: quickLinks.active,
+			});
+	});
+
+const deleteQuickLinkSchema = z.object({
+	id: z.number(),
+});
+export const deleteQuickLink = createServerFn({ method: 'GET' })
+	.validator(deleteQuickLinkSchema)
+	.handler(async ({ data }) => {
+		await requirePermission({ quickLink: ['delete'] });
+		return await getDb()
+			.delete(quickLinks)
+			.where(eq(quickLinks.id, data.id))
+			.returning({
+				id: quickLinks.id,
+				title: quickLinks.title,
+				url: quickLinks.url,
+				active: quickLinks.active,
+			});
+	});
+
+const getQuickLinksSchema = z
+	.object({
+		status: z.literal(['active', 'inactive', 'all']).default('all'),
+	})
+	.default({ status: 'all' });
+export const getQuickLinks = createServerFn({ method: 'GET' })
+	.validator(getQuickLinksSchema)
+	.handler(async ({ data }) => {
+		await requirePermission({ quickLink: ['read'] });
+		const query = getDb()
+			.select({
+				id: quickLinks.id,
+				title: quickLinks.title,
+				url: quickLinks.url,
+				active: quickLinks.active,
+			})
+			.from(quickLinks);
+
+		switch (data.status) {
+			case 'all':
+				return await query;
+			case 'active':
+				return await query.where(eq(quickLinks.active, true));
+			case 'inactive':
+				return await query.where(eq(quickLinks.active, false));
+		}
+	});
+
+const insertTeamQuickLinkSchema = teamQuickLinkInsertSchema.omit({
+	id: true,
+	createdAt: true,
+	updatedAt: true,
+	updatedBy: true,
+	createdBy: true,
+});
+export const insertTeamQuickLink = createServerFn({ method: 'POST' })
+	.validator(insertTeamQuickLinkSchema)
+	.handler(async ({ data }) => {
+		const session = await requirePermission({ teamQuickLink: ['create'] });
+		const today = new Date();
+		return getDb()
+			.insert(teamQuickLinks)
+			.values({
+				...data,
+				createdBy: session.user.id,
+				updatedBy: session.user.id,
+				createdAt: today,
+				updatedAt: today,
+			})
+			.returning({
+				id: teamQuickLinks.id,
+				title: teamQuickLinks.title,
+				url: teamQuickLinks.url,
+				active: teamQuickLinks.active,
+				teamId: teamQuickLinks.teamId,
+			});
+	});
+
+const updateTeamQuickLinkSchema = z.object({
+	id: z.number(),
+	values: teamQuickLinkUpdateSchema.omit({
+		id: true,
+		createdAt: true,
+		createdBy: true,
+		updatedAt: true,
+		updatedBy: true,
+	}),
+});
+export const updateTeamQuickLink = createServerFn({ method: 'POST' })
+	.validator(updateTeamQuickLinkSchema)
+	.handler(async ({ data }) => {
+		const session = await requirePermission({ quickLink: ['update'] });
+		const today = new Date();
+		return await getDb()
+			.update(teamQuickLinks)
+			.set({ ...data.values, updatedBy: session.user.id, updatedAt: today })
+			.where(eq(teamQuickLinks.id, data.id))
+			.returning({
+				id: teamQuickLinks.id,
+				title: teamQuickLinks.title,
+				url: teamQuickLinks.url,
+				active: teamQuickLinks.active,
+				teamId: teamQuickLinks.teamId,
+			});
+	});
+
+const deleteTeamQuickLinkSchema = z.object({
+	id: z.number(),
+});
+export const deleteTeamQuickLink = createServerFn({ method: 'GET' })
+	.validator(deleteTeamQuickLinkSchema)
+	.handler(async ({ data }) => {
+		await requirePermission({ quickLink: ['delete'] });
+		return await getDb()
+			.delete(teamQuickLinks)
+			.where(eq(teamQuickLinks.id, data.id))
+			.returning({
+				id: teamQuickLinks.id,
+				title: teamQuickLinks.title,
+				url: teamQuickLinks.url,
+				active: teamQuickLinks.active,
+				teamId: teamQuickLinks.teamId,
+			});
+	});
+
+const getTeamQuickLinksSchema = z
+	.object({
+		status: z.literal(['active', 'inactive', 'all']).default('all'),
+	})
+	.default({ status: 'all' });
+export const getTeamQuickLinks = createServerFn({ method: 'GET' })
+	.validator(getTeamQuickLinksSchema)
+	.handler(async ({ data }) => {
+		await requirePermission({ quickLink: ['read'] });
+		const query = getDb()
+			.select({
+				id: teamQuickLinks.id,
+				title: teamQuickLinks.title,
+				url: teamQuickLinks.url,
+				active: teamQuickLinks.active,
+				teamId: teamQuickLinks.teamId,
+			})
+			.from(teamQuickLinks);
+
+		switch (data.status) {
+			case 'all':
+				return await query;
+			case 'active':
+				return await query.where(eq(teamQuickLinks.active, true));
+			case 'inactive':
+				return await query.where(eq(teamQuickLinks.active, false));
+		}
 	});
