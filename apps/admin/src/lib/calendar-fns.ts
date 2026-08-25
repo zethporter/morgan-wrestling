@@ -81,10 +81,15 @@ export const updateCalendar = createServerFn({ method: 'POST' })
 	.handler(async ({ data }) => {
 		const session = await requirePermission({ calendar: ['update'] });
 		const updatedAt = new Date();
-		await getDb()
+		return await getDb()
 			.update(calendars)
 			.set({ ...data.values, updatedBy: session.user.id, updatedAt })
-			.where(eq(calendars.id, data.id));
+			.where(eq(calendars.id, data.id))
+			.returning({
+				id: calendars.id,
+				name: calendars.name,
+				color: calendars.color,
+			});
 	});
 
 const deleteCalendarSchema = z.object({ id: z.nanoid() });
@@ -92,7 +97,13 @@ export const deleteCalendar = createServerFn({ method: 'POST' })
 	.validator(deleteCalendarSchema)
 	.handler(async ({ data }) => {
 		await requirePermission({ calendar: ['delete'] });
-		await getDb().delete(calendars).where(eq(calendars.id, data.id));
+		return await getDb()
+			.delete(calendars)
+			.where(eq(calendars.id, data.id))
+			.returning({
+				id: calendars.id,
+				name: calendars.name,
+			});
 	});
 
 const calendarEventsSchema = z.object({
@@ -157,7 +168,7 @@ export const insertCalendarEvent = createServerFn({ method: 'POST' })
 	.handler(async ({ data }) => {
 		const session = await requirePermission({ calendarEvent: ['create'] });
 		const today = new Date();
-		await getDb()
+		return await getDb()
 			.insert(calendarEvents)
 			.values({
 				createdBy: session.user.id,
@@ -165,6 +176,17 @@ export const insertCalendarEvent = createServerFn({ method: 'POST' })
 				createdAt: today,
 				updatedAt: today,
 				...data,
+			})
+			.returning({
+				id: calendarEvents.id,
+				title: calendarEvents.title,
+				description: calendarEvents.description,
+				location: calendarEvents.location,
+				startTime: calendarEvents.startTime,
+				endTime: calendarEvents.endTime,
+				allDay: calendarEvents.allDay,
+				calendarId: calendarEvents.calendarId,
+				eventTypeId: calendarEvents.eventTypeId,
 			});
 	});
 
@@ -183,10 +205,21 @@ export const updateCalendarEvent = createServerFn({ method: 'POST' })
 	.handler(async ({ data }) => {
 		const session = await requirePermission({ calendarEvent: ['update'] });
 		const updatedAt = new Date();
-		await getDb()
+		return await getDb()
 			.update(calendarEvents)
 			.set({ ...data.values, updatedBy: session.user.id, updatedAt })
-			.where(eq(calendarEvents.id, data.id));
+			.where(eq(calendarEvents.id, data.id))
+			.returning({
+				id: calendarEvents.id,
+				title: calendarEvents.title,
+				description: calendarEvents.description,
+				location: calendarEvents.location,
+				startTime: calendarEvents.startTime,
+				endTime: calendarEvents.endTime,
+				allDay: calendarEvents.allDay,
+				calendarId: calendarEvents.calendarId,
+				eventTypeId: calendarEvents.eventTypeId,
+			});
 	});
 
 const deleteCalendarEventSchema = z.object({ id: z.number() });
@@ -194,7 +227,20 @@ export const deleteCalendarEvent = createServerFn({ method: 'POST' })
 	.validator(deleteCalendarEventSchema)
 	.handler(async ({ data }) => {
 		await requirePermission({ calendarEvent: ['delete'] });
-		await getDb().delete(calendarEvents).where(eq(calendarEvents.id, data.id));
+		return await getDb()
+			.delete(calendarEvents)
+			.where(eq(calendarEvents.id, data.id))
+			.returning({
+				id: calendarEvents.id,
+				title: calendarEvents.title,
+				description: calendarEvents.description,
+				location: calendarEvents.location,
+				startTime: calendarEvents.startTime,
+				endTime: calendarEvents.endTime,
+				allDay: calendarEvents.allDay,
+				calendarId: calendarEvents.calendarId,
+				eventTypeId: calendarEvents.eventTypeId,
+			});
 	});
 
 export const getEventTypes = createServerFn({ method: 'GET' }).handler(
@@ -214,7 +260,14 @@ export const insertCalendarEventType = createServerFn({
 	.validator(insertCalendarEventSchema)
 	.handler(async ({ data }) => {
 		await requirePermission({ calendarEventType: ['create'] });
-		await getDb().insert(calendarEventTypes).values(data);
+		return await getDb().insert(calendarEventTypes).values(data).returning({
+			id: calendarEventTypes.id,
+			name: calendarEventTypes.name,
+			calendarId: calendarEventTypes.calendarId,
+			iconType: calendarEventTypes.iconType,
+			icon: calendarEventTypes.icon,
+			color: calendarEventTypes.color,
+		});
 	});
 
 const updateCalendarEventTypeSchema = z.object({
@@ -227,10 +280,18 @@ export const updateCalendarEventType = createServerFn({ method: 'POST' })
 	.validator(updateCalendarEventTypeSchema)
 	.handler(async ({ data }) => {
 		await requirePermission({ calendarEventType: ['update'] });
-		await getDb()
+		return await getDb()
 			.update(calendarEventTypes)
 			.set(data.values)
-			.where(eq(calendarEventTypes.id, data.id));
+			.where(eq(calendarEventTypes.id, data.id))
+			.returning({
+				id: calendarEventTypes.id,
+				name: calendarEventTypes.name,
+				calendarId: calendarEventTypes.calendarId,
+				iconType: calendarEventTypes.iconType,
+				icon: calendarEventTypes.icon,
+				color: calendarEventTypes.color,
+			});
 	});
 
 const deleteCalendarEventTypeSchema = z.object({ id: z.number() });
@@ -240,5 +301,13 @@ export const deleteCalendarEventType = createServerFn({ method: 'POST' })
 		await requirePermission({ calendarEventType: ['delete'] });
 		await getDb()
 			.delete(calendarEventTypes)
-			.where(eq(calendarEventTypes.id, data.id));
+			.where(eq(calendarEventTypes.id, data.id))
+			.returning({
+				id: calendarEventTypes.id,
+				name: calendarEventTypes.name,
+				calendarId: calendarEventTypes.calendarId,
+				iconType: calendarEventTypes.iconType,
+				icon: calendarEventTypes.icon,
+				color: calendarEventTypes.color,
+			});
 	});

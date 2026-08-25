@@ -1,14 +1,10 @@
-import {
-	createServerValidate,
-	getFormData,
-	ServerValidateError,
-} from '@tanstack/react-form-start';
+import { eq } from '@morgan-wrestling/db/sql';
 import { createServerFn } from '@tanstack/react-start';
 import { setResponseStatus } from '@tanstack/react-start/server';
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
-import { getDb, teamInsertSchema, teams } from '#/db';
-import { newTeamFormOpts } from '#/form-handlers/teams';
+import { getDb, teamInsertSchema, teams, teamUpdateSchema } from '#/db';
+import { requirePermission } from './auth-fns';
 
 // import { ensureSession } from "./auth-fns";
 
@@ -26,45 +22,100 @@ import { newTeamFormOpts } from '#/form-handlers/teams';
 
 const normalizeName = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
 
-const createTeamServerValidate = createServerValidate({
-	...newTeamFormOpts,
-	onServerValidate: teamInsertSchema
-		.omit({ id: true, normalizedName: true, defaultCalendarId: true })
-		.extend({
-			homeContent: z.string(),
-			homeContentMetadata: z.string(),
-		})
-		.transform((data) => ({
-			...data,
-			id: nanoid(),
-			normalizedName: normalizeName(data.name),
-		})),
+const createTeamSchema = teamInsertSchema.omit({
+	id: true,
+	normalizedName: true,
+	homeContentMetadata: true,
+	homeContent: true,
+	defaultCalendarId: true,
 });
-
 export const createTeam = createServerFn({ method: 'POST' })
-	.validator((data: unknown) => {
-		if (!(data instanceof FormData)) {
-			throw new Error('Invalid data');
-		}
-		return data;
-	})
+	.validator(createTeamSchema)
 	.handler(async ({ data }) => {
 		try {
-			const validatedData = await createTeamServerValidate(data);
+			await requirePermission({ team: ['create'] });
 
-			await getDb().insert(teams).values(validatedData);
-			// return team;
-		} catch (error) {
-			if (error instanceof ServerValidateError) {
-				return error.response;
-			}
+			return await getDb()
+				.insert(teams)
+				.values({
+					...data,
+					id: nanoid(),
+					normalizedName: normalizeName(data.name),
+				})
+				.returning({
+					id: teams.id,
+					name: teams.name,
+					normalizedName: teams.normalizedName,
+				});
+		} catch {
 			setResponseStatus(500);
 			return 'There was an internal error';
 		}
 	});
 
-export const getFormDataFromServer = createServerFn({
-	method: 'GET',
-}).handler(async () => getFormData());
+const updateTeamSchema = z.object({
+	id: z.nanoid(),
+	values: teamUpdateSchema.omit({ id: true, normalizedName: true }),
+});
+type TTeamUpdate = z.infer<typeof teamUpdateSchema>;
+export const updateTeam = createServerFn({ method: 'POST' })
+	.validator(updateTeamSchema)
+	.handler(async ({ data }) => {
+		await requirePermission({ team: ['update'] });
+		const updatedValues: TTeamUpdate = { ...data };
+		if (updatedValues.name) {
+			updatedValues.normalizedName = normalizeName(updatedValues.name);
+		}
+		return await getDb().update(teams).set(updatedValues).returning({
+			id: teams.id,
+			name: teams.name,
+			homeConten: teams.homeContent,
+			homeContentMetadata: teams.homeContentMetadata,
+			defaultCalendarId: teams.defaultCalendarId,
+		});
+	});
 
-// need better error handling?? should probably add some created info and stuff on teams?
+const deleteTeamSchema = z.object({
+	id: z.nanoid(),
+});
+export const deleteTeam = createServerFn({ method: 'POST' })
+	.validator(deleteTeamSchema)
+	.handler(async ({ data }) => {
+		await requirePermission({ team: ['delete'] });
+		return await getDb().delete(teams).where(eq(teams.id, data.id)).returning({
+			id: teams.id,
+			name: teams.name,
+			homeConten: teams.homeContent,
+			homeContentMetadata: teams.homeContentMetadata,
+			defaultCalendarId: teams.defaultCalendarId,
+		});
+	});
+
+export const getTeams = createServerFn({ method: 'GET' }).handler(async () => {
+	await requirePermission({ team: ['read'] });
+	return await getDb()
+		.select({
+			id: teams.id,
+			name: teams.name,
+		})
+		.from(teams);
+});
+
+const getTeamSchema = z.object({
+	id: z.nanoid(),
+});
+export const getTeam = createServerFn({ method: 'GET' })
+	.validator(getTeamSchema)
+	.handler(async ({ data }) => {
+		await requirePermission({ team: ['read'] });
+		return await getDb()
+			.select({
+				id: teams.id,
+				name: teams.name,
+				homeConten: teams.homeContent,
+				homeContentMetadata: teams.homeContentMetadata,
+				defaultCalendarId: teams.defaultCalendarId,
+			})
+			.from(teams)
+			.where(eq(teams.id, data.id));
+	});
