@@ -1,4 +1,4 @@
-import { eq } from '@morgan-wrestling/db/sql';
+import { and, eq } from '@morgan-wrestling/db/sql';
 import { createServerFn } from '@tanstack/react-start';
 import { setResponseStatus } from '@tanstack/react-start/server';
 import { nanoid } from 'nanoid';
@@ -326,4 +326,118 @@ export const getTeamQuickLinks = createServerFn({ method: 'GET' })
 			case 'inactive':
 				return await query.where(eq(teamQuickLinks.active, false));
 		}
+	});
+
+const insertTeamPageSchema = teamPageInsertSchema.omit({
+	id: true,
+	createdAt: true,
+	updatedAt: true,
+	updatedBy: true,
+	createdBy: true,
+});
+export const insertTeamPage = createServerFn({ method: 'POST' })
+	.validator(insertTeamPageSchema)
+	.handler(async ({ data }) => {
+		const session = await requirePermission({ teamPage: ['create'] });
+		const today = new Date();
+		return getDb()
+			.insert(teamPages)
+			.values({
+				...data,
+				createdBy: session.user.id,
+				updatedBy: session.user.id,
+				createdAt: today,
+				updatedAt: today,
+			})
+			.returning({
+				id: teamPages.id,
+				title: teamPages.title,
+				teamId: teamPages.teamId,
+				sequenceNumber: teamPages.sequenceNumber,
+			});
+	});
+
+const updateTeamPageSchema = z.object({
+	id: z.number(),
+	values: teamPageUpdateSchema.omit({
+		id: true,
+		createdAt: true,
+		createdBy: true,
+		updatedAt: true,
+		updatedBy: true,
+	}),
+});
+export const updateTeamPage = createServerFn({ method: 'POST' })
+	.validator(updateTeamPageSchema)
+	.handler(async ({ data }) => {
+		const session = await requirePermission({ quickLink: ['update'] });
+		const today = new Date();
+		return await getDb()
+			.update(teamPages)
+			.set({ ...data.values, updatedBy: session.user.id, updatedAt: today })
+			.where(eq(teamPages.id, data.id))
+			.returning({
+				id: teamPages.id,
+				title: teamPages.title,
+				teamId: teamPages.teamId,
+				sequenceNumber: teamPages.sequenceNumber,
+			});
+	});
+
+const deleteTeamPageSchema = z.object({
+	id: z.number(),
+});
+export const deleteTeamPage = createServerFn({ method: 'GET' })
+	.validator(deleteTeamPageSchema)
+	.handler(async ({ data }) => {
+		await requirePermission({ teamPage: ['delete'] });
+		return await getDb()
+			.delete(teamPages)
+			.where(eq(teamPages.id, data.id))
+			.returning({
+				id: teamPages.id,
+				title: teamPages.title,
+				teamId: teamPages.teamId,
+				sequenceNumber: teamPages.sequenceNumber,
+			});
+	});
+
+const getTeamPagesSchema = z.object({
+	teamId: z.nanoid(),
+});
+export const getTeamPages = createServerFn({ method: 'GET' })
+	.validator(getTeamPagesSchema)
+	.handler(async ({ data }) => {
+		await requirePermission({ teamPage: ['read'] });
+		return await getDb()
+			.select({
+				id: teamPages.id,
+				title: teamPages.title,
+				active: teamPages.active,
+				teamId: teamPages.teamId,
+			})
+			.from(teamPages)
+			.where(eq(teamPages.teamId, data.teamId));
+	});
+
+const getTeamPageSchema = z.object({
+	teamId: z.nanoid(),
+	id: z.number(),
+});
+export const getTeamPage = createServerFn({ method: 'GET' })
+	.validator(getTeamPageSchema)
+	.handler(async ({ data }) => {
+		await requirePermission({ teamPage: ['read'] });
+		return await getDb()
+			.select({
+				id: teamPages.id,
+				teamId: teamPages.teamId,
+				title: teamPages.title,
+				sequenceNumber: teamPages.sequenceNumber,
+				content: teamPages.content,
+				contentMetadata: teamPages.contentMetadata,
+				active: teamPages.active,
+			})
+			.from(teamPages)
+			.where(and(eq(teamPages.teamId, data.teamId), eq(teamPages.id, data.id)));
 	});

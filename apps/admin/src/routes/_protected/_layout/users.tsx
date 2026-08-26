@@ -11,6 +11,7 @@ import {
 import { toast } from '@morgan-wrestling/ui/components/ui/toast';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, redirect } from '@tanstack/react-router';
+import { useServerFn } from '@tanstack/react-start';
 import { checkPermission, removeAdminRole, setAdminRole } from '#/lib/auth-fns';
 import { userPageQueryOptions } from '#/lib/auth-opts';
 
@@ -48,6 +49,8 @@ const RolesBadges = ({ roles }: { roles: string }) => {
 function RouteComponent() {
 	const { queryClient } = Route.useRouteContext();
 	const { data } = useSuspenseQuery(userPageQueryOptions);
+	const setAdmin = useServerFn(setAdminRole);
+	const revokeAdmin = useServerFn(removeAdminRole);
 
 	const toggleAdmin = async (userId: string, isAdmin: boolean) => {
 		const loadingDesc = isAdmin
@@ -66,9 +69,9 @@ function RouteComponent() {
 		});
 		try {
 			if (isAdmin) {
-				await setAdminRole({ data: { id: userId } });
+				await setAdmin({ data: { id: userId } });
 			} else {
-				await removeAdminRole({ data: { id: userId } });
+				await revokeAdmin({ data: { id: userId } });
 			}
 			toast.add({
 				type: 'success',

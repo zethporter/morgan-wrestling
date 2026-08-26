@@ -16,11 +16,13 @@ import {
 } from '@morgan-wrestling/ui/components/ui/tooltip';
 import { useAppForm } from '@morgan-wrestling/ui/hooks/use-form';
 import { useQueryClient } from '@tanstack/react-query';
+import { useServerFn } from '@tanstack/react-start';
 import { CalendarPlusIcon } from 'lucide-react';
 import { insertCalendar, newCalendarValidator } from '#/lib/calendar-fns';
 
 export const NewCalendarDialog = () => {
 	const queryClient = useQueryClient();
+	const insertCalFn = useServerFn(insertCalendar);
 
 	const form = useAppForm({
 		defaultValues: {
@@ -28,7 +30,7 @@ export const NewCalendarDialog = () => {
 			color: 'slate',
 		},
 		onSubmit: async ({ value }) => {
-			await toast.promise(insertCalendar({ data: value }), {
+			await toast.promise(insertCalFn({ data: value }), {
 				loading: 'Creating calendar...',
 				success: (res) => {
 					queryClient.invalidateQueries({ queryKey: ['calendars'] });

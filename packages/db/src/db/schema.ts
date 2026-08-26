@@ -110,6 +110,7 @@ export const teamPages = sqliteTable('team_pages', {
 	sequenceNumber: integer('sequence_number').notNull(),
 	content: text(),
 	contentMetadata: text('content_metadata'),
+	active: integer({ mode: 'boolean' }),
 	createdAt: integer('created_at', { mode: 'timestamp' }).default(
 		sql`(unixepoch())`,
 	),
