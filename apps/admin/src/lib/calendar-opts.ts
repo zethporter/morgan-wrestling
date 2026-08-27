@@ -1,8 +1,7 @@
 import { queryOptions } from '@tanstack/react-query';
-import { getCalendars } from './calendar-fns';
+import { getCalendar, getCalendars } from './calendar-fns';
 
 export const LAST_CALENDAR_KEY = 'last-calendar-id';
-
 
 export const calendarsQueryOptions = queryOptions({
 	queryKey: ['calendars'],
@@ -10,3 +9,10 @@ export const calendarsQueryOptions = queryOptions({
 		return await getCalendars();
 	},
 });
+
+export const calendarQueryOptions = (calendarId: string) =>
+	queryOptions({
+		queryKey: ['calendar', calendarId],
+		queryFn: async ({ queryKey }) =>
+			await getCalendar({ data: { id: String(queryKey[1]) } }),
+	});

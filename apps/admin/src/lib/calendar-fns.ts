@@ -7,6 +7,7 @@ import {
 	calendarEventUpdateSchema,
 	calendarInsertSchema,
 	calendars,
+	calendarUpdateSchema,
 } from '@morgan-wrestling/db/schema';
 import { eq } from '@morgan-wrestling/db/sql';
 import { calendarColors } from '@morgan-wrestling/ui/components/calendar/calendar-utils';
@@ -69,15 +70,40 @@ export const getCalendars = createServerFn({ method: 'GET' }).handler(
 	},
 );
 
-const calendarUpdateSchema = z.object({
+const getCalendarSchema = z.object({ id: z.nanoid() });
+export const getCalendar = createServerFn({ method: 'GET' })
+	.validator(getCalendarSchema)
+	.handler(async ({ data }) => {
+		await requirePermission({ calendar: ['read'] });
+		const cals = await getDb()
+			.select({
+				name: calendars.name,
+				color: calendars.color,
+			})
+			.from(calendars)
+			.where(eq(calendars.id, data.id))
+			.limit(1);
+		if (cals.length === 1) {
+			return cals[0];
+		} else {
+			throw new Error('Calendar not found');
+		}
+	});
+
+export const updateCalendarValues = calendarUpdateSchema.omit({
+	id: true,
+	createdAt: true,
+	createdBy: true,
+	updatedAt: true,
+	updatedBy: true,
+});
+export type UpdateCalendarValues = z.infer<typeof updateCalendarValues>;
+export const updateCalendarSchema = z.object({
 	id: z.nanoid(),
-	values: z.object({
-		name: z.string().optional(),
-		color: z.literal(Object.keys(calendarColors)).optional(),
-	}),
+	values: updateCalendarValues,
 });
 export const updateCalendar = createServerFn({ method: 'POST' })
-	.validator(calendarUpdateSchema)
+	.validator(updateCalendarSchema)
 	.handler(async ({ data }) => {
 		const session = await requirePermission({ calendar: ['update'] });
 		const updatedAt = new Date();
