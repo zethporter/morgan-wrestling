@@ -1,6 +1,6 @@
 import { cn } from '@morgan-wrestling/ui';
 import { calendarColors } from '@morgan-wrestling/ui/components/calendar/calendar-utils';
-import { Button } from '@morgan-wrestling/ui/components/ui/button.js';
+import { Button } from '@morgan-wrestling/ui/components/ui/button';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -15,20 +15,25 @@ import {
 	SelectValue,
 } from '@morgan-wrestling/ui/components/ui/select';
 import { toast } from '@morgan-wrestling/ui/components/ui/toast';
+import { useAppForm } from '@morgan-wrestling/ui/hooks/use-form';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
+import { addMonths } from 'date-fns';
 import {
 	CalendarCogIcon,
 	CalendarDaysIcon,
 	CalendarIcon,
-	Edit,
 	EllipsisVerticalIcon,
+	SearchIcon,
+	TicketIcon,
 	TrashIcon,
 } from 'lucide-react';
+import { useState } from 'react';
 import { z } from 'zod';
 import { EditCalendarDialog } from '#/components/edit-calendar';
-import { NewCalendarDialog } from '#/components/new-calendar.tsx';
+import { NewCalendarDialog } from '#/components/new-calendar';
+import { NewEventDialog } from '#/components/new-event';
 import { deleteCalendar } from '#/lib/calendar-fns';
 import {
 	calendarQueryOptions,
@@ -36,12 +41,13 @@ import {
 	LAST_CALENDAR_KEY,
 } from '#/lib/calendar-opts';
 
-const calendarIdSearchParams = z
-	.object({
-		editCalendar: z.boolean().default(false).optional(),
-	})
-	.optional()
-	.default({ editCalendar: false });
+const calendarSearchParams = z.object({
+	dateRange: z.object({
+		from: z.date(),
+		to: z.date(),
+	}),
+	search: z.string(),
+});
 
 export const Route = createFileRoute(
 	'/_protected/_layout/calendars/$calendarId',
@@ -56,13 +62,14 @@ export const Route = createFileRoute(
 		if (typeof window === 'undefined') return;
 		localStorage.setItem(LAST_CALENDAR_KEY, params.calendarId);
 	},
-	validateSearch: calendarIdSearchParams,
 });
 
 function RouteComponent() {
 	const { calendarId } = Route.useParams();
 	const { queryClient } = Route.useRouteContext();
 	const router = Route.useNavigate();
+
+	const [editCal, setEditCal] = useState<boolean>(false);
 
 	const dc = useServerFn(deleteCalendar);
 	const deleteMutation = useMutation({
@@ -89,10 +96,26 @@ function RouteComponent() {
 	const { data: calendars } = useSuspenseQuery(calendarsQueryOptions);
 	const _calendars = calendars ?? [];
 
-	const openEditCalendar = () =>
-		router({
-			search: () => ({ editCalendar: true }),
-		});
+	const openEditCalendar = () => setEditCal((curr) => !curr);
+
+	const form = useAppForm({
+		defaultValues: {
+			dateRange: {
+				from: new Date(),
+				to: addMonths(new Date(), 1),
+			},
+			search: '',
+		},
+		validators: {
+			onSubmit: calendarSearchParams,
+		},
+		onSubmit: ({ value }) => {
+			toast.add({
+				type: 'success',
+				description: `Search submitted from ${value.dateRange.from.toJSON()} to ${value.dateRange.to.toJSON()}`,
+			});
+		},
+	});
 
 	return (
 		<div className='p-5 flex flex-col w-full gap-5'>
@@ -169,11 +192,27 @@ function RouteComponent() {
 					</DropdownMenu>
 				</div>
 			</div>
-			<div>
-				Hello "/_protected/_layout/calendars/<span>{calendarId}</span>"!
-			</div>
-
-			<EditCalendarDialog />
+			<form
+				onSubmit={(e) => {
+					e.preventDefault();
+					form.handleSubmit();
+				}}
+				className='flex flex-row flex-wrap justify-between gap-2'
+			>
+				<div className='grow flex flex-row gap-2'>
+					<form.AppField
+						name='dateRange'
+						children={(field) => (
+							<field.FormDatePicker mode='range' className='max-w-sm grow' />
+						)}
+					/>
+					<form.SubmitButton variant='secondary'>
+						<SearchIcon />
+					</form.SubmitButton>
+				</div>
+				<NewEventDialog calendarId={calendarId} />
+			</form>
+			<EditCalendarDialog open={editCal} onOpenChange={openEditCalendar} />
 		</div>
 	);
 }

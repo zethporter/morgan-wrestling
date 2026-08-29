@@ -10,7 +10,6 @@ import {
 	calendarUpdateSchema,
 } from '@morgan-wrestling/db/schema';
 import { eq } from '@morgan-wrestling/db/sql';
-import { calendarColors } from '@morgan-wrestling/ui/components/calendar/calendar-utils';
 import { createServerFn } from '@tanstack/react-start';
 import { nanoid } from 'nanoid';
 import { z } from 'zod';
@@ -178,30 +177,26 @@ export const getCalendarEvent = createServerFn({ method: 'GET' })
 		return event;
 	});
 
+export const insertCalendarEventSchema = calendarEventInsertSchema.omit({
+	id: true,
+	createdAt: true,
+	createdBy: true,
+	updatedAt: true,
+	updatedBy: true,
+});
 export const insertCalendarEvent = createServerFn({ method: 'POST' })
-	.validator((data: unknown) => {
-		const parsed = calendarEventInsertSchema
-			.omit({
-				id: true,
-				createdAt: true,
-				createdBy: true,
-				updatedAt: true,
-				updatedBy: true,
-			})
-			.parse(data);
-		return parsed;
-	})
+	.validator(insertCalendarEventSchema)
 	.handler(async ({ data }) => {
 		const session = await requirePermission({ calendarEvent: ['create'] });
 		const today = new Date();
 		return await getDb()
 			.insert(calendarEvents)
 			.values({
+				...data,
 				createdBy: session.user.id,
 				updatedBy: session.user.id,
 				createdAt: today,
 				updatedAt: today,
-				...data,
 			})
 			.returning({
 				id: calendarEvents.id,
@@ -269,21 +264,33 @@ export const deleteCalendarEvent = createServerFn({ method: 'POST' })
 			});
 	});
 
-export const getEventTypes = createServerFn({ method: 'GET' }).handler(
-	async () => {
+const getEventTypesSchema = z.object({
+	calendarId: z.nanoid(),
+});
+export const getEventTypes = createServerFn({ method: 'GET' })
+	.validator(getEventTypesSchema)
+	.handler(async ({ data }) => {
 		await requirePermission({ calendarEventType: ['read'] });
-		const eventTypes = await getDb().select().from(calendarEventTypes);
+		const eventTypes = await getDb()
+			.select({
+				value: calendarEventTypes.id,
+				label: calendarEventTypes.name,
+				color: calendarEventTypes.color,
+			})
+			.from(calendarEventTypes)
+			.where(eq(calendarEventTypes.calendarId, data.calendarId));
 		return eventTypes;
+	});
+
+export const insertCalendarEventTypeSchema = calendarEventTypeInsertSchema.omit(
+	{
+		id: true,
 	},
 );
-
-const insertCalendarEventSchema = calendarEventTypeInsertSchema.omit({
-	id: true,
-});
 export const insertCalendarEventType = createServerFn({
 	method: 'POST',
 })
-	.validator(insertCalendarEventSchema)
+	.validator(insertCalendarEventTypeSchema)
 	.handler(async ({ data }) => {
 		await requirePermission({ calendarEventType: ['create'] });
 		return await getDb().insert(calendarEventTypes).values(data).returning({

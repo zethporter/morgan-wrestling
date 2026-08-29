@@ -4,6 +4,7 @@ import { cn } from '@morgan-wrestling/ui/lib/utils';
 import { CalendarIcon } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { useFieldContext } from '../../hooks/use-form';
+import { calendarColors } from '../calendar/calendar-utils';
 import { Field, FieldError, FieldLabel } from '../ui/field';
 import {
 	Select,
@@ -13,18 +14,21 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from '../ui/select';
-import { calendarColors } from '../calendar/calendar-utils';
 
 type CalendarColorInputProps = {
 	className?: string;
 	inputClassName?: string;
 	label?: string;
+	Icon?: typeof CalendarIcon;
 } & Omit<
 	ComponentProps<typeof Select>,
 	'id' | 'name' | 'onBlur' | 'onChange' | 'className'
 >;
 
-export const FormCalendarColor = (props: CalendarColorInputProps) => {
+export const FormCalendarColor = ({
+	Icon = CalendarIcon,
+	...props
+}: CalendarColorInputProps) => {
 	const field = useFieldContext<keyof typeof calendarColors>();
 	const isInvalid = field.state.meta.isTouched && !field.state.meta.isValid;
 
@@ -60,7 +64,7 @@ export const FormCalendarColor = (props: CalendarColorInputProps) => {
 					<SelectValue
 						children={(value) => (
 							<div className='flex gap-2 items-center'>
-								<CalendarIcon
+								<Icon
 									className={cn(
 										calendarColors[value as keyof typeof calendarColors],
 									)}
@@ -74,7 +78,7 @@ export const FormCalendarColor = (props: CalendarColorInputProps) => {
 					<SelectGroup>
 						{items.map((item) => (
 							<SelectItem key={item.value} value={item.value}>
-								<CalendarIcon
+								<Icon
 									className={cn(
 										calendarColors[item.value as keyof typeof calendarColors],
 									)}

@@ -48,7 +48,7 @@ export const NewCalendarDialog = () => {
 		<Dialog>
 			<Tooltip>
 				<TooltipTrigger render={<DialogTrigger render={<Button />} />}>
-					<CalendarPlusIcon className='stroke-3' />
+					<CalendarPlusIcon />
 					New Calendar
 				</TooltipTrigger>
 				<TooltipContent>Add new Calendar</TooltipContent>

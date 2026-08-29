@@ -10,12 +10,7 @@ import {
 import { toast } from '@morgan-wrestling/ui/components/ui/toast';
 import { useAppForm } from '@morgan-wrestling/ui/hooks/use-form';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
-import {
-	useNavigate,
-	useParams,
-	useRouteContext,
-	useSearch,
-} from '@tanstack/react-router';
+import { useParams, useRouteContext } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
 import {
 	type UpdateCalendarValues,
@@ -24,17 +19,20 @@ import {
 } from '#/lib/calendar-fns';
 import { calendarQueryOptions } from '#/lib/calendar-opts';
 
-export const EditCalendarDialog = () => {
+export const EditCalendarDialog = ({
+	open,
+	onOpenChange,
+}: {
+	open: boolean;
+	onOpenChange: (open: boolean) => void;
+}) => {
 	const { queryClient } = useRouteContext({
 		from: '/_protected/_layout/calendars/$calendarId',
 	});
 	const { calendarId } = useParams({
 		from: '/_protected/_layout/calendars/$calendarId',
 	});
-	const { editCalendar: open } = useSearch({
-		from: '/_protected/_layout/calendars/$calendarId',
-	});
-	const navigate = useNavigate({ from: '/calendars/$calendarId' });
+
 	const uc = useServerFn(updateCalendar);
 	const { data } = useSuspenseQuery(calendarQueryOptions(calendarId));
 
@@ -75,13 +73,8 @@ export const EditCalendarDialog = () => {
 		},
 	});
 
-	const toggleDialog = () =>
-		navigate({
-			search: (prev) => ({ editCalendar: !prev.editCalendar }),
-		});
-
 	return (
-		<Dialog open={open} onOpenChange={toggleDialog}>
+		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogContent
 				showCloseButton={false}
 				render={

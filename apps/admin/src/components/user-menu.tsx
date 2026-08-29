@@ -1,3 +1,4 @@
+import { authClient } from '@morgan-wrestling/auth/lib/auth-client';
 import { useTheme } from '@morgan-wrestling/ui/components/theme-provider';
 import {
 	Avatar,
@@ -13,11 +14,9 @@ import {
 	DropdownMenuSubContent,
 	DropdownMenuSubTrigger,
 	DropdownMenuTrigger,
-
 } from '@morgan-wrestling/ui/components/ui/dropdown-menu';
 import { useRouter } from '@tanstack/react-router';
-import { LogOutIcon } from 'lucide-react';
-import { authClient } from '@morgan-wrestling/auth/lib/auth-client';
+import { LogOutIcon, MonitorIcon, MoonStarIcon, SunIcon } from 'lucide-react';
 
 export const UserMenu = () => {
 	const router = useRouter();
@@ -41,34 +40,39 @@ export const UserMenu = () => {
 								data-active={theme === 'light'}
 								onClick={() => setTheme('light')}
 							>
+								<SunIcon />
 								Light
 							</DropdownMenuItem>
 							<DropdownMenuItem
 								data-active={theme === 'dark'}
 								onClick={() => setTheme('dark')}
 							>
+								<MoonStarIcon />
 								Dark
 							</DropdownMenuItem>
 							<DropdownMenuItem
 								data-active={theme === 'system'}
 								onClick={() => setTheme('system')}
 							>
+								<MonitorIcon />
 								System
 							</DropdownMenuItem>
 						</DropdownMenuSubContent>
 					</DropdownMenuSub>
 				</DropdownMenuGroup>
 				<DropdownMenuGroup>
-					<DropdownMenuItem onClick={async () => {
+					<DropdownMenuItem
+						onClick={async () => {
 							await authClient.signOut({
 								fetchOptions: {
 									onSuccess: () => {
-										router.navigate({ to: "/log-in" }); // redirect to login page
+										router.navigate({ to: '/log-in' }); // redirect to login page
 									},
 								},
 							});
-						}}>
-							<LogOutIcon /> Logout
+						}}
+					>
+						<LogOutIcon /> Logout
 					</DropdownMenuItem>
 				</DropdownMenuGroup>
 			</DropdownMenuContent>
