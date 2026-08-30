@@ -26,11 +26,11 @@ import {
 	CalendarIcon,
 	EllipsisVerticalIcon,
 	SearchIcon,
-	TicketIcon,
 	TrashIcon,
 } from 'lucide-react';
 import { useState } from 'react';
 import { z } from 'zod';
+import { CalendarEvents } from '#/components/calendar-events.tsx';
 import { EditCalendarDialog } from '#/components/edit-calendar';
 import { NewCalendarDialog } from '#/components/new-calendar';
 import { NewEventDialog } from '#/components/new-event';
@@ -192,14 +192,14 @@ function RouteComponent() {
 					</DropdownMenu>
 				</div>
 			</div>
-			<form
-				onSubmit={(e) => {
-					e.preventDefault();
-					form.handleSubmit();
-				}}
-				className='flex flex-row flex-wrap justify-between gap-2'
-			>
-				<div className='grow flex flex-row gap-2'>
+			<div className='flex flex-row flex-wrap justify-between gap-2'>
+				<form
+					onSubmit={(e) => {
+						e.preventDefault();
+						form.handleSubmit();
+					}}
+					className='grow flex flex-row gap-2'
+				>
 					<form.AppField
 						name='dateRange'
 						children={(field) => (
@@ -209,10 +209,16 @@ function RouteComponent() {
 					<form.SubmitButton variant='secondary'>
 						<SearchIcon />
 					</form.SubmitButton>
-				</div>
+				</form>
 				<NewEventDialog calendarId={calendarId} />
-			</form>
+			</div>
 			<EditCalendarDialog open={editCal} onOpenChange={openEditCalendar} />
+			<form.Subscribe
+				selector={(state) => [state.values.dateRange]}
+				children={([dateRange]) => (
+					<CalendarEvents calendarId={calendarId} dateRange={dateRange} />
+				)}
+			/>
 		</div>
 	);
 }

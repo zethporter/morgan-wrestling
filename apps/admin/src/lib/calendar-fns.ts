@@ -133,8 +133,10 @@ export const deleteCalendar = createServerFn({ method: 'POST' })
 
 const calendarEventsSchema = z.object({
 	calendarId: z.nanoid(),
-	startDate: z.iso.date(),
-	endDate: z.iso.date(),
+	dateRange: z.object({
+		to: z.date(),
+		from: z.date(),
+	}),
 });
 export const getCalendarEvents = createServerFn({ method: 'GET' })
 	.validator(calendarEventsSchema)
@@ -145,11 +147,13 @@ export const getCalendarEvents = createServerFn({ method: 'GET' })
 			const events = await getDb()
 				.select({
 					id: calendarEvents.id,
-					name: calendarEvents.title,
+					title: calendarEvents.title,
+					description: calendarEvents.description,
 					startTim: calendarEvents.startTime,
 					endTime: calendarEvents.endTime,
 					allDay: calendarEvents.allDay,
 					eventType: calendarEventTypes.name,
+					eventColor: calendarEventTypes.color,
 				})
 				.from(calendarEvents)
 				.leftJoin(

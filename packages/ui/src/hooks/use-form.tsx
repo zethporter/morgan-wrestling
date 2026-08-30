@@ -4,6 +4,8 @@ import {
 	FormCombobox,
 	DatePicker as FormDatePicker,
 	FormInput,
+	FormSwitch,
+	FormTextArea,
 	GoogleSignInButton,
 } from '../components/form';
 import { Button } from '../components/ui/button';
@@ -16,6 +18,8 @@ const { useAppForm } = createFormHook({
 		FormCombobox,
 		FormInput,
 		FormDatePicker,
+		FormTextArea,
+		FormSwitch,
 	},
 	formComponents: {
 		SubmitButton: (props) => <Button type='submit' {...props} />,
