@@ -17,7 +17,7 @@ import { MapPinIcon } from 'lucide-react';
 import {
 	type CalendarEventCardProps,
 	updateCalendarEvent,
-	updateCalendarEventSchema,
+	updateCalendarEventFormSchema,
 } from '#/lib/calendar-fns';
 import { CalendarEventType } from './admin-form/calendar-event-type';
 
@@ -46,7 +46,7 @@ export const EditEventDialog = ({
 	});
 
 	const form = useAppForm({
-		formId: 'new-calendar-event',
+		formId: 'edit-calendar-event',
 		defaultValues: {
 			calendarId: event.calendarId,
 			title: event.title,
@@ -67,7 +67,7 @@ export const EditEventDialog = ({
 			formApi.reset();
 		},
 		validators: {
-			onSubmit: updateCalendarEventSchema,
+			onSubmit: updateCalendarEventFormSchema,
 		},
 	});
 

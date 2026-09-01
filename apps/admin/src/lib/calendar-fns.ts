@@ -231,15 +231,16 @@ export const insertCalendarEvent = createServerFn({ method: 'POST' })
 			});
 	});
 
+export const updateCalendarEventFormSchema = calendarEventUpdateSchema.omit({
+	id: true,
+	createdAt: true,
+	createdBy: true,
+	updatedAt: true,
+	updatedBy: true,
+});
 export const updateCalendarEventSchema = z.object({
 	id: z.number(),
-	values: calendarEventUpdateSchema.omit({
-		id: true,
-		createdAt: true,
-		createdBy: true,
-		updatedAt: true,
-		updatedBy: true,
-	}),
+	values: updateCalendarEventFormSchema,
 });
 export const updateCalendarEvent = createServerFn({ method: 'POST' })
 	.validator(updateCalendarEventSchema)
