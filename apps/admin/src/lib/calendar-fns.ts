@@ -131,6 +131,19 @@ export const deleteCalendar = createServerFn({ method: 'POST' })
 			});
 	});
 
+export type CalendarEventCardProps = {
+	id: number;
+	calendarId: string;
+	title: string;
+	description: string | null;
+	location: string | null;
+	startTime: Date;
+	endTime: Date;
+	allDay: boolean;
+	eventTypeId: number;
+	eventType: string | null;
+	eventColor: string | null;
+};
 const calendarEventsSchema = z.object({
 	calendarId: z.nanoid(),
 	dateRange: z.object({
@@ -147,11 +160,14 @@ export const getCalendarEvents = createServerFn({ method: 'GET' })
 			const events = await getDb()
 				.select({
 					id: calendarEvents.id,
+					calendarId: calendarEvents.calendarId,
 					title: calendarEvents.title,
 					description: calendarEvents.description,
-					startTim: calendarEvents.startTime,
+					location: calendarEvents.location,
+					startTime: calendarEvents.startTime,
 					endTime: calendarEvents.endTime,
 					allDay: calendarEvents.allDay,
+					eventTypeId: calendarEvents.eventTypeId,
 					eventType: calendarEventTypes.name,
 					eventColor: calendarEventTypes.color,
 				})
@@ -215,7 +231,7 @@ export const insertCalendarEvent = createServerFn({ method: 'POST' })
 			});
 	});
 
-const updateCalendarEventSchema = z.object({
+export const updateCalendarEventSchema = z.object({
 	id: z.number(),
 	values: calendarEventUpdateSchema.omit({
 		id: true,
