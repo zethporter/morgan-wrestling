@@ -84,9 +84,6 @@ export const EditEventDialog = ({
 					/>
 				}
 			>
-				<DialogHeader>
-					<DialogTitle className='text-lg'>Add New Event</DialogTitle>
-				</DialogHeader>
 				<DialogDescription>
 					<form.Subscribe
 						selector={(form) => [form.isSubmitting]}

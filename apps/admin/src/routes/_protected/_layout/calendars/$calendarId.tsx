@@ -39,6 +39,7 @@ import {
 	calendarQueryOptions,
 	calendarsQueryOptions,
 	LAST_CALENDAR_KEY,
+	NO_CALENDARS,
 } from '#/lib/calendar-opts';
 
 const calendarSearchParams = z.object({
@@ -54,10 +55,14 @@ export const Route = createFileRoute(
 )({
 	component: RouteComponent,
 	loader: async ({ context, params }) => {
-		await context.queryClient.ensureQueryData(calendarsQueryOptions);
-		await context.queryClient.ensureQueryData(
-			calendarQueryOptions(params.calendarId),
-		);
+		if (params.calendarId !== NO_CALENDARS) {
+			await context.queryClient.ensureQueryData(calendarsQueryOptions);
+			await context.queryClient.ensureQueryData(
+				calendarQueryOptions(params.calendarId),
+			);
+		} else {
+			return;
+		}
 
 		if (typeof window === 'undefined') return;
 		localStorage.setItem(LAST_CALENDAR_KEY, params.calendarId);
