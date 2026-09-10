@@ -1,0 +1,108 @@
+name: Deploy
+
+# Deploys the apps under `apps/` to Cloudflare Workers.
+#
+# On a push to master, only the apps whose files changed are deployed. Shared
+# code (`packages/`, the lockfile, the base tsconfig) counts as a change to
+# every app, since they all bundle it.
+#
+# To add an app: add a key under `filters` below and an entry to the
+# workflow_dispatch `app` choices. The matrix picks it up from there.
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      app:
+        description: App to deploy
+        type: choice
+        default: admin
+        options:
+          - admin
+
+permissions:
+  contents: read
+
+jobs:
+  changes:
+    name: Detect changed apps
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.apps.outputs.apps }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: filter
+        if: github.event_name == 'push'
+        with:
+          filters: |
+            shared: &shared
+              - 'packages/**'
+              - 'bun.lock'
+              - 'package.json'
+              - 'tsconfig.base.json'
+              - '.github/workflows/deploy.yml'
+            admin:
+              - *shared
+              - 'apps/admin/**'
+
+      # paths-filter emits a JSON array of matched filter names, which feeds the
+      # deploy matrix directly. `shared` is dropped: it is a fragment, not an app.
+      - id: apps
+        env:
+          MATCHED: ${{ steps.filter.outputs.changes }}
+          DISPATCH_APP: ${{ inputs.app }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            apps=$(jq -cn --arg a "$DISPATCH_APP" '[$a]')
+          else
+            apps=$(jq -c 'map(select(. != "shared"))' <<<"$MATCHED")
+          fi
+          echo "apps=$apps" >> "$GITHUB_OUTPUT"
+          echo "Deploying: $apps" >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    name: Deploy ${{ matrix.app }}
+    needs: changes
+    if: needs.changes.outputs.apps != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJSON(needs.changes.outputs.apps) }}
+    # Never let two deploys of the same app race; the later push wins.
+    concurrency:
+      group: deploy-${{ matrix.app }}
+      cancel-in-progress: true
+    defaults:
+      run:
+        working-directory: apps/${{ matrix.app }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      # Workspace deps resolve from the repo root, not the app directory.
+      - name: Install
+        working-directory: .
+        run: bun install --frozen-lockfile
+
+      # Only VITE_-prefixed vars are needed here; they are inlined into the
+      # client bundle at build time. Every server var is read from process.env
+      # at runtime and comes from Worker secrets instead.
+      - name: Build
+        run: bun run build
+        env:
+          VITE_APP_TITLE: ${{ vars.VITE_APP_TITLE }}
+
+      # The Cloudflare Vite plugin writes .wrangler/deploy/config.json during
+      # the build, which points wrangler at dist/server/wrangler.json.
+      - name: Deploy
+        run: bunx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

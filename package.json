@@ -1,6 +1,7 @@
 {
   "name": "morgan-wrestling",
   "private": true,
+  "packageManager": "bun@1.4.2",
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "check": "biome check",
