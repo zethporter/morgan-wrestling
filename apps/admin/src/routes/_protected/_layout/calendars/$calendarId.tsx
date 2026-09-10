@@ -1,19 +1,10 @@
-import { cn } from '@morgan-wrestling/ui';
-import { calendarColors } from '@morgan-wrestling/ui/components/calendar/calendar-utils';
 import { Button } from '@morgan-wrestling/ui/components/ui/button';
 import {
 	DropdownMenu,
 	DropdownMenuContent,
 	DropdownMenuItem,
 	DropdownMenuTrigger,
-} from '@morgan-wrestling/ui/components/ui/dropdown-menu.js';
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from '@morgan-wrestling/ui/components/ui/select';
+} from '@morgan-wrestling/ui/components/ui/dropdown-menu';
 import { toast } from '@morgan-wrestling/ui/components/ui/toast';
 import { useAppForm } from '@morgan-wrestling/ui/hooks/use-form';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
@@ -23,7 +14,6 @@ import { addMonths } from 'date-fns';
 import {
 	CalendarCogIcon,
 	CalendarDaysIcon,
-	CalendarIcon,
 	EllipsisVerticalIcon,
 	SearchIcon,
 	TrashIcon,
@@ -31,6 +21,7 @@ import {
 import { useState } from 'react';
 import { z } from 'zod';
 import { CalendarEvents } from '#/components/calendar-events.tsx';
+import { CalendarSelect } from '#/components/calendar-select.tsx';
 import { EditCalendarDialog } from '#/components/edit-calendar';
 import { NewCalendarDialog } from '#/components/new-calendar';
 import { NewEventDialog } from '#/components/new-event';
@@ -128,7 +119,9 @@ function RouteComponent() {
 				<div className='flex gap-2 items-center'>
 					<CalendarDaysIcon />
 					<h1 className='text-2xl font-bold'>Calendars</h1>
-					<Select
+
+					<CalendarSelect
+						calendars={_calendars}
 						value={calendarId}
 						onValueChange={(value) =>
 							router({
@@ -136,44 +129,7 @@ function RouteComponent() {
 								params: { calendarId: value ?? '' },
 							})
 						}
-					>
-						<SelectTrigger>
-							<SelectValue
-								children={(value) => {
-									const currCal = (_calendars ?? []).find(
-										(calendar) => calendar.id === value,
-									);
-									if (!!currCal) {
-										return (
-											<div className='flex gap-2 items-center'>
-												<CalendarIcon
-													className={cn(
-														calendarColors[
-															currCal.color as keyof typeof calendarColors
-														],
-													)}
-												/>
-												<span>{currCal.name}</span>
-											</div>
-										);
-									}
-									return null;
-								}}
-							/>
-						</SelectTrigger>
-						<SelectContent alignItemWithTrigger={false}>
-							{_calendars.map(({ id, name, color }) => (
-								<SelectItem key={id} value={id}>
-									<CalendarIcon
-										className={cn(
-											calendarColors[color as keyof typeof calendarColors],
-										)}
-									/>
-									{name}
-								</SelectItem>
-							))}
-						</SelectContent>
-					</Select>
+					/>
 				</div>
 				<div>
 					<NewCalendarDialog />
