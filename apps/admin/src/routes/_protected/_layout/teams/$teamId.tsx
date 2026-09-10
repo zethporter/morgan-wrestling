@@ -13,7 +13,7 @@ import {
 	SelectValue,
 } from '@morgan-wrestling/ui/components/ui/select.js';
 import { toast } from '@morgan-wrestling/ui/components/ui/toast';
-import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
 import {
@@ -76,9 +76,9 @@ function RouteComponent() {
 	});
 
 	const { data: teams } = useSuspenseQuery(teamsQueryOptions);
-	const { data: pages } = useSuspenseQuery(
-		teamPagesQueryOptions(params.teamId),
-	);
+	// useSuspenseQuery forces enabled: true, so this has to be useQuery for the
+	// `enabled` guard in teamPagesQueryOptions to keep NO_TEAMS off the wire.
+	const { data: pages } = useQuery(teamPagesQueryOptions(params.teamId));
 	const teamSelectItems = useMemo(() => {
 		return teams.map((team) => ({ label: team.name, value: team.id }));
 	}, [teams]);
@@ -123,13 +123,13 @@ function RouteComponent() {
 						</DropdownMenuTrigger>
 						<DropdownMenuContent className='w-fit'>
 							<DropdownMenuItem>
-								<Edit2Icon /> Edit Calendar
+								<Edit2Icon /> Edit Team Info
 							</DropdownMenuItem>
 							<DropdownMenuItem
 								onClick={() => deleteMutation.mutate(params.teamId)}
 								variant='destructive'
 							>
-								<TrashIcon /> Delete Calendar
+								<TrashIcon /> Delete Team
 							</DropdownMenuItem>
 						</DropdownMenuContent>
 					</DropdownMenu>
