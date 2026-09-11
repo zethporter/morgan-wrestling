@@ -64,17 +64,21 @@ export const updateTeam = createServerFn({ method: 'POST' })
 	.validator(updateTeamSchema)
 	.handler(async ({ data }) => {
 		await requirePermission({ team: ['update'] });
-		const updatedValues: TTeamUpdate = { ...data };
+		const updatedValues: TTeamUpdate = { ...data.values };
 		if (updatedValues.name) {
 			updatedValues.normalizedName = normalizeName(updatedValues.name);
 		}
-		return await getDb().update(teams).set(updatedValues).returning({
-			id: teams.id,
-			name: teams.name,
-			homeConten: teams.homeContent,
-			homeContentMetadata: teams.homeContentMetadata,
-			defaultCalendarId: teams.defaultCalendarId,
-		});
+		return await getDb()
+			.update(teams)
+			.set(updatedValues)
+			.where(eq(teams.id, data.id))
+			.returning({
+				id: teams.id,
+				name: teams.name,
+				homeContent: teams.homeContent,
+				homeContentMetadata: teams.homeContentMetadata,
+				defaultCalendarId: teams.defaultCalendarId,
+			});
 	});
 
 const deleteTeamSchema = z.object({
@@ -87,7 +91,7 @@ export const deleteTeam = createServerFn({ method: 'POST' })
 		return await getDb().delete(teams).where(eq(teams.id, data.id)).returning({
 			id: teams.id,
 			name: teams.name,
-			homeConten: teams.homeContent,
+			homeContent: teams.homeContent,
 			homeContentMetadata: teams.homeContentMetadata,
 			defaultCalendarId: teams.defaultCalendarId,
 		});
@@ -114,7 +118,7 @@ export const getTeam = createServerFn({ method: 'GET' })
 			.select({
 				id: teams.id,
 				name: teams.name,
-				homeConten: teams.homeContent,
+				homeContent: teams.homeContent,
 				homeContentMetadata: teams.homeContentMetadata,
 				defaultCalendarId: teams.defaultCalendarId,
 			})
@@ -372,7 +376,7 @@ const updateTeamPageSchema = z.object({
 export const updateTeamPage = createServerFn({ method: 'POST' })
 	.validator(updateTeamPageSchema)
 	.handler(async ({ data }) => {
-		const session = await requirePermission({ quickLink: ['update'] });
+		const session = await requirePermission({ teamPage: ['update'] });
 		const today = new Date();
 		return await getDb()
 			.update(teamPages)

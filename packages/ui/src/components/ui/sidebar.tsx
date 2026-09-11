@@ -33,6 +33,11 @@ type SidebarContextProps = {
 	setOpenMobile: (open: boolean) => void;
 	isMobile: boolean;
 	toggleSidebar: () => void;
+	/**
+	 * A nested sidebar lives inside a region of the page instead of the
+	 * viewport, so it sizes and positions itself against its wrapper.
+	 */
+	nested: boolean;
 };
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null);
@@ -50,6 +55,10 @@ function SidebarProvider({
 	defaultOpen = true,
 	open: openProp,
 	onOpenChange: setOpenProp,
+	nested = false,
+	cookieName = SIDEBAR_COOKIE_NAME,
+	width = SIDEBAR_WIDTH,
+	widthIcon = SIDEBAR_WIDTH_ICON,
 	className,
 	style,
 	children,
@@ -58,6 +67,17 @@ function SidebarProvider({
 	defaultOpen?: boolean;
 	open?: boolean;
 	onOpenChange?: (open: boolean) => void;
+	/**
+	 * Renders the sidebar inside its wrapper rather than against the viewport.
+	 * Use for a sidebar nested within a page region: the wrapper becomes the
+	 * positioning context, so give it a height via `className` (`h-full`,
+	 * `flex-1`, …) — it no longer stretches to the viewport.
+	 */
+	nested?: boolean;
+	/** Pass `false` to skip persisting state — nested sidebars share the page cookie otherwise. */
+	cookieName?: string | false;
+	width?: string;
+	widthIcon?: string;
 }) {
 	const isMobile = useIsMobile();
 	const [openMobile, setOpenMobile] = React.useState(false);
@@ -76,9 +96,11 @@ function SidebarProvider({
 			}
 
 			// This sets the cookie to keep the sidebar state.
-			document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+			if (cookieName) {
+				document.cookie = `${cookieName}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
+			}
 		},
-		[setOpenProp, open],
+		[setOpenProp, open, cookieName],
 	);
 
 	// Helper to toggle the sidebar.
@@ -99,23 +121,35 @@ function SidebarProvider({
 			openMobile,
 			setOpenMobile,
 			toggleSidebar,
+			nested,
 		}),
-		[state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar],
+		[
+			state,
+			open,
+			setOpen,
+			isMobile,
+			openMobile,
+			setOpenMobile,
+			toggleSidebar,
+			nested,
+		],
 	);
 
 	return (
 		<SidebarContext.Provider value={contextValue}>
 			<div
 				data-slot='sidebar-wrapper'
+				data-nested={nested || undefined}
 				style={
 					{
-						'--sidebar-width': SIDEBAR_WIDTH,
-						'--sidebar-width-icon': SIDEBAR_WIDTH_ICON,
+						'--sidebar-width': width,
+						'--sidebar-width-icon': widthIcon,
 						...style,
 					} as React.CSSProperties
 				}
 				className={cn(
-					'group/sidebar-wrapper flex min-h-svh w-full has-data-[variant=inset]:bg-sidebar',
+					'group/sidebar-wrapper flex w-full has-data-[variant=inset]:bg-sidebar',
+					nested ? 'relative min-h-0 overflow-hidden' : 'min-h-svh',
 					className,
 				)}
 				{...props}
@@ -139,14 +173,17 @@ function Sidebar({
 	variant?: 'sidebar' | 'floating' | 'inset';
 	collapsible?: 'offcanvas' | 'icon' | 'none';
 }) {
-	const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
+	const { isMobile, state, openMobile, setOpenMobile, nested } = useSidebar();
 
 	if (collapsible === 'none') {
 		return (
 			<div
 				data-slot='sidebar'
+				data-side={side}
 				className={cn(
-					'flex h-full w-(--sidebar-width) flex-col bg-sidebar text-sidebar-foreground',
+					'flex h-full w-(--sidebar-width) shrink-0 flex-col bg-sidebar text-sidebar-foreground',
+					nested &&
+						'min-h-0 data-[side=left]:border-r data-[side=right]:border-l',
 					className,
 				)}
 				{...props}
@@ -207,7 +244,9 @@ function Sidebar({
 				data-slot='sidebar-container'
 				data-side={side}
 				className={cn(
-					'fixed inset-y-0 z-10 hidden h-svh w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)] md:flex',
+					'inset-y-0 z-10 hidden w-(--sidebar-width) transition-[left,right,width] duration-200 ease-linear data-[side=left]:left-0 data-[side=left]:group-data-[collapsible=offcanvas]:left-[calc(var(--sidebar-width)*-1)] data-[side=right]:right-0 data-[side=right]:group-data-[collapsible=offcanvas]:right-[calc(var(--sidebar-width)*-1)] md:flex',
+					// Nested sidebars anchor to the provider wrapper, not the viewport.
+					nested ? 'absolute h-full' : 'fixed h-svh',
 					// Adjust the padding for floating and inset variants.
 					variant === 'floating' || variant === 'inset'
 						? 'p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]'
@@ -280,15 +319,26 @@ function SidebarRail({ className, ...props }: React.ComponentProps<'button'>) {
 }
 
 function SidebarInset({ className, ...props }: React.ComponentProps<'main'>) {
+	const { nested } = useSidebar();
+	const insetClassName = cn(
+		'relative flex w-full flex-1 flex-col bg-background md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2',
+		nested && 'min-h-0 min-w-0 overflow-hidden',
+		className,
+	);
+
+	// A nested inset sits inside the page's own `main`, so it renders a div.
+	if (nested) {
+		return (
+			<div
+				data-slot='sidebar-inset'
+				className={insetClassName}
+				{...(props as React.ComponentProps<'div'>)}
+			/>
+		);
+	}
+
 	return (
-		<main
-			data-slot='sidebar-inset'
-			className={cn(
-				'relative flex w-full flex-1 flex-col bg-background md:peer-data-[variant=inset]:m-2 md:peer-data-[variant=inset]:ml-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ml-2',
-				className,
-			)}
-			{...props}
-		/>
+		<main data-slot='sidebar-inset' className={insetClassName} {...props} />
 	);
 }
 

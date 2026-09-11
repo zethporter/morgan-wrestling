@@ -6,25 +6,36 @@ import {
 	DropdownMenuTrigger,
 } from '@morgan-wrestling/ui/components/ui/dropdown-menu';
 import {
+	Empty,
+	EmptyDescription,
+	EmptyHeader,
+	EmptyMedia,
+	EmptyTitle,
+} from '@morgan-wrestling/ui/components/ui/empty';
+import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
 } from '@morgan-wrestling/ui/components/ui/select.js';
+import {
+	SidebarInset,
+	SidebarProvider,
+} from '@morgan-wrestling/ui/components/ui/sidebar';
 import { toast } from '@morgan-wrestling/ui/components/ui/toast';
 import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Outlet } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
 import {
 	BlocksIcon,
 	Edit2Icon,
 	EllipsisVerticalIcon,
-	PlusIcon,
 	TrashIcon,
 } from 'lucide-react';
 import { useMemo } from 'react';
 import { NewTeamDialog } from '#/components/new-team';
+import { TeamSidebar } from '#/components/team-sidebar';
 import { deleteTeam } from '#/lib/team-fns';
 import {
 	LAST_TEAM_KEY,
@@ -84,8 +95,10 @@ function RouteComponent() {
 		return teams.map((team) => ({ label: team.name, value: team.id }));
 	}, [teams]);
 
+	const hasTeam = params.teamId !== NO_TEAMS;
+
 	return (
-		<div className='p-5 flex flex-col w-full gap-5'>
+		<div className='p-5 flex flex-col w-full h-full min-h-0 gap-5'>
 			<div className='w-full flex justify-between container mx-auto gap-4 items-center'>
 				<div className='flex justify-start gap-2 items-center'>
 					<BlocksIcon />
@@ -134,6 +147,30 @@ function RouteComponent() {
 					</DropdownMenu>
 				</div>
 			</div>
+			{hasTeam ? (
+				<SidebarProvider
+					nested
+					className='container mx-auto flex-1 overflow-hidden rounded-xl border bg-background'
+					width='14rem'
+				>
+					<TeamSidebar teamId={params.teamId} pages={pages ?? []} />
+					<SidebarInset>
+						<Outlet />
+					</SidebarInset>
+				</SidebarProvider>
+			) : (
+				<Empty className='container mx-auto flex-1 rounded-xl border'>
+					<EmptyHeader>
+						<EmptyMedia variant='icon'>
+							<BlocksIcon />
+						</EmptyMedia>
+						<EmptyTitle>No teams yet</EmptyTitle>
+						<EmptyDescription>
+							Create a team to start adding pages and content.
+						</EmptyDescription>
+					</EmptyHeader>
+				</Empty>
+			)}
 		</div>
 	);
 }

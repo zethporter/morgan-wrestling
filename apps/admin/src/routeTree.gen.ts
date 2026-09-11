@@ -21,6 +21,8 @@ import { Route as ProtectedLayoutCalendarsIndexRouteImport } from './routes/_pro
 import { Route as ProtectedLayoutCalendarsCalendarIdRouteImport } from './routes/_protected/_layout/calendars/$calendarId'
 import { Route as ProtectedLayoutTeamsIndexRouteImport } from './routes/_protected/_layout/teams/index'
 import { Route as ProtectedLayoutTeamsTeamIdRouteImport } from './routes/_protected/_layout/teams/$teamId'
+import { Route as ProtectedLayoutTeamsTeamIdIndexRouteImport } from './routes/_protected/_layout/teams/$teamId/index'
+import { Route as ProtectedLayoutTeamsTeamIdPagesPageIdRouteImport } from './routes/_protected/_layout/teams/$teamId/pages/$pageId'
 
 const ProtectedRoute = ProtectedRouteImport.update({
   id: '/_protected',
@@ -84,6 +86,18 @@ const ProtectedLayoutTeamsTeamIdRoute =
     path: '/teams/$teamId',
     getParentRoute: () => ProtectedLayoutRoute,
   } as any)
+const ProtectedLayoutTeamsTeamIdIndexRoute =
+  ProtectedLayoutTeamsTeamIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => ProtectedLayoutTeamsTeamIdRoute,
+  } as any)
+const ProtectedLayoutTeamsTeamIdPagesPageIdRoute =
+  ProtectedLayoutTeamsTeamIdPagesPageIdRouteImport.update({
+    id: '/pages/$pageId',
+    path: '/pages/$pageId',
+    getParentRoute: () => ProtectedLayoutTeamsTeamIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof ProtectedLayoutIndexRoute
@@ -93,9 +107,11 @@ export interface FileRoutesByFullPath {
   '/users': typeof ProtectedLayoutUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/calendars/$calendarId': typeof ProtectedLayoutCalendarsCalendarIdRoute
-  '/teams/$teamId': typeof ProtectedLayoutTeamsTeamIdRoute
+  '/teams/$teamId': typeof ProtectedLayoutTeamsTeamIdRouteWithChildren
   '/calendars/': typeof ProtectedLayoutCalendarsIndexRoute
   '/teams/': typeof ProtectedLayoutTeamsIndexRoute
+  '/teams/$teamId/': typeof ProtectedLayoutTeamsTeamIdIndexRoute
+  '/teams/$teamId/pages/$pageId': typeof ProtectedLayoutTeamsTeamIdPagesPageIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof ProtectedLayoutIndexRoute
@@ -105,9 +121,10 @@ export interface FileRoutesByTo {
   '/users': typeof ProtectedLayoutUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/calendars/$calendarId': typeof ProtectedLayoutCalendarsCalendarIdRoute
-  '/teams/$teamId': typeof ProtectedLayoutTeamsTeamIdRoute
   '/calendars': typeof ProtectedLayoutCalendarsIndexRoute
   '/teams': typeof ProtectedLayoutTeamsIndexRoute
+  '/teams/$teamId': typeof ProtectedLayoutTeamsTeamIdIndexRoute
+  '/teams/$teamId/pages/$pageId': typeof ProtectedLayoutTeamsTeamIdPagesPageIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -120,9 +137,11 @@ export interface FileRoutesById {
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_protected/_layout/': typeof ProtectedLayoutIndexRoute
   '/_protected/_layout/calendars/$calendarId': typeof ProtectedLayoutCalendarsCalendarIdRoute
-  '/_protected/_layout/teams/$teamId': typeof ProtectedLayoutTeamsTeamIdRoute
+  '/_protected/_layout/teams/$teamId': typeof ProtectedLayoutTeamsTeamIdRouteWithChildren
   '/_protected/_layout/calendars/': typeof ProtectedLayoutCalendarsIndexRoute
   '/_protected/_layout/teams/': typeof ProtectedLayoutTeamsIndexRoute
+  '/_protected/_layout/teams/$teamId/': typeof ProtectedLayoutTeamsTeamIdIndexRoute
+  '/_protected/_layout/teams/$teamId/pages/$pageId': typeof ProtectedLayoutTeamsTeamIdPagesPageIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -137,6 +156,8 @@ export interface FileRouteTypes {
     | '/teams/$teamId'
     | '/calendars/'
     | '/teams/'
+    | '/teams/$teamId/'
+    | '/teams/$teamId/pages/$pageId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -146,9 +167,10 @@ export interface FileRouteTypes {
     | '/users'
     | '/api/auth/$'
     | '/calendars/$calendarId'
-    | '/teams/$teamId'
     | '/calendars'
     | '/teams'
+    | '/teams/$teamId'
+    | '/teams/$teamId/pages/$pageId'
   id:
     | '__root__'
     | '/_protected'
@@ -163,6 +185,8 @@ export interface FileRouteTypes {
     | '/_protected/_layout/teams/$teamId'
     | '/_protected/_layout/calendars/'
     | '/_protected/_layout/teams/'
+    | '/_protected/_layout/teams/$teamId/'
+    | '/_protected/_layout/teams/$teamId/pages/$pageId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -258,15 +282,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedLayoutTeamsTeamIdRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
+    '/_protected/_layout/teams/$teamId/': {
+      id: '/_protected/_layout/teams/$teamId/'
+      path: '/'
+      fullPath: '/teams/$teamId/'
+      preLoaderRoute: typeof ProtectedLayoutTeamsTeamIdIndexRouteImport
+      parentRoute: typeof ProtectedLayoutTeamsTeamIdRoute
+    }
+    '/_protected/_layout/teams/$teamId/pages/$pageId': {
+      id: '/_protected/_layout/teams/$teamId/pages/$pageId'
+      path: '/pages/$pageId'
+      fullPath: '/teams/$teamId/pages/$pageId'
+      preLoaderRoute: typeof ProtectedLayoutTeamsTeamIdPagesPageIdRouteImport
+      parentRoute: typeof ProtectedLayoutTeamsTeamIdRoute
+    }
   }
 }
+
+interface ProtectedLayoutTeamsTeamIdRouteChildren {
+  ProtectedLayoutTeamsTeamIdIndexRoute: typeof ProtectedLayoutTeamsTeamIdIndexRoute
+  ProtectedLayoutTeamsTeamIdPagesPageIdRoute: typeof ProtectedLayoutTeamsTeamIdPagesPageIdRoute
+}
+
+const ProtectedLayoutTeamsTeamIdRouteChildren: ProtectedLayoutTeamsTeamIdRouteChildren =
+  {
+    ProtectedLayoutTeamsTeamIdIndexRoute: ProtectedLayoutTeamsTeamIdIndexRoute,
+    ProtectedLayoutTeamsTeamIdPagesPageIdRoute:
+      ProtectedLayoutTeamsTeamIdPagesPageIdRoute,
+  }
+
+const ProtectedLayoutTeamsTeamIdRouteWithChildren =
+  ProtectedLayoutTeamsTeamIdRoute._addFileChildren(
+    ProtectedLayoutTeamsTeamIdRouteChildren,
+  )
 
 interface ProtectedLayoutRouteChildren {
   ProtectedLayoutHomePageRoute: typeof ProtectedLayoutHomePageRoute
   ProtectedLayoutUsersRoute: typeof ProtectedLayoutUsersRoute
   ProtectedLayoutIndexRoute: typeof ProtectedLayoutIndexRoute
   ProtectedLayoutCalendarsCalendarIdRoute: typeof ProtectedLayoutCalendarsCalendarIdRoute
-  ProtectedLayoutTeamsTeamIdRoute: typeof ProtectedLayoutTeamsTeamIdRoute
+  ProtectedLayoutTeamsTeamIdRoute: typeof ProtectedLayoutTeamsTeamIdRouteWithChildren
   ProtectedLayoutCalendarsIndexRoute: typeof ProtectedLayoutCalendarsIndexRoute
   ProtectedLayoutTeamsIndexRoute: typeof ProtectedLayoutTeamsIndexRoute
 }
@@ -277,7 +332,7 @@ const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
   ProtectedLayoutIndexRoute: ProtectedLayoutIndexRoute,
   ProtectedLayoutCalendarsCalendarIdRoute:
     ProtectedLayoutCalendarsCalendarIdRoute,
-  ProtectedLayoutTeamsTeamIdRoute: ProtectedLayoutTeamsTeamIdRoute,
+  ProtectedLayoutTeamsTeamIdRoute: ProtectedLayoutTeamsTeamIdRouteWithChildren,
   ProtectedLayoutCalendarsIndexRoute: ProtectedLayoutCalendarsIndexRoute,
   ProtectedLayoutTeamsIndexRoute: ProtectedLayoutTeamsIndexRoute,
 }

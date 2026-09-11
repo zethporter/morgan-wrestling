@@ -11,7 +11,13 @@ import { StrikeToggle } from './tb-components/strike-toggle';
 import { TextAlignToggle } from './tb-components/text-align-toggle';
 import { UnderlineToggle } from './tb-components/underline-toggle';
 
-export function Toolbar({ editor }: { editor: Editor }) {
+export function Toolbar({
+	editor,
+	className,
+}: {
+	editor?: Editor | null;
+	className?: string;
+}) {
 	if (!editor) {
 		return null;
 	}
@@ -19,6 +25,7 @@ export function Toolbar({ editor }: { editor: Editor }) {
 		<div
 			className={cn(
 				'flex flex-row justify-start gap-2 p-1 rounded-sm bg-background',
+				className,
 			)}
 		>
 			<HeadingSelect />
