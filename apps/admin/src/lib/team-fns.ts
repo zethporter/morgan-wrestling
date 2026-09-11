@@ -22,13 +22,15 @@ import { requirePermission } from './auth-fns';
 
 const normalizeName = (name: string) => name.toLowerCase().replace(/\s+/g, '-');
 
-const createTeamSchema = teamInsertSchema.omit({
+export const createTeamSchema = teamInsertSchema.omit({
 	id: true,
 	normalizedName: true,
 	homeContentMetadata: true,
 	homeContent: true,
 	defaultCalendarId: true,
 });
+export type CreateTeamSchema = z.infer<typeof createTeamSchema>;
+
 export const createTeam = createServerFn({ method: 'POST' })
 	.validator(createTeamSchema)
 	.handler(async ({ data }) => {

@@ -24,6 +24,7 @@ import {
 	TrashIcon,
 } from 'lucide-react';
 import { useMemo } from 'react';
+import { NewTeamDialog } from '#/components/new-team';
 import { deleteTeam } from '#/lib/team-fns';
 import {
 	LAST_TEAM_KEY,
@@ -112,9 +113,7 @@ function RouteComponent() {
 					</Select>
 				</div>
 				<div className='flex justify-end gap-2'>
-					<Button className='justify-self-end'>
-						<PlusIcon /> Add Team
-					</Button>
+					<NewTeamDialog />
 					<DropdownMenu>
 						<DropdownMenuTrigger>
 							<Button variant='ghost'>
