@@ -18,11 +18,11 @@
     "@tursodatabase/serverless": "^1.4.0",
     "drizzle-kit": "1.0.0-rc.4",
     "drizzle-orm": "1.0.0-rc.4",
-    "zod": "^4.4.3"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@libsql/client": "^0.17.4",
-    "@types/bun": "^1.3.14",
+    "@libsql/client": "^0.18.0",
+    "@types/bun": "^1.4.2",
     "typescript": "^7.0.2"
   }
 }
