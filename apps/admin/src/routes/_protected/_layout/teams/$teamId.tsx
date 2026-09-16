@@ -33,8 +33,9 @@ import {
 	EllipsisVerticalIcon,
 	TrashIcon,
 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { NewTeamDialog } from '#/components/new-team';
+import { QuickLinksDialog } from '#/components/quick-links-dialog';
 import { TeamSidebar } from '#/components/team-sidebar';
 import { deleteTeam } from '#/lib/team-fns';
 import {
@@ -97,12 +98,14 @@ function RouteComponent() {
 
 	const hasTeam = params.teamId !== NO_TEAMS;
 
+	const [editQuickLinks, setEditQuickLinks] = useState(false);
+
 	return (
-		<div className='p-5 flex flex-col w-full h-full min-h-0 gap-5'>
-			<div className='w-full flex justify-between container mx-auto gap-4 items-center'>
-				<div className='flex justify-start gap-2 items-center'>
+		<div className='flex h-full min-h-0 w-full flex-col gap-5 p-5'>
+			<div className='container mx-auto flex w-full items-center justify-between gap-4'>
+				<div className='flex items-center justify-start gap-2'>
 					<BlocksIcon />
-					<h1 className='text-2xl font-bold'>Teams</h1>
+					<h1 className='font-bold text-2xl'>Teams</h1>
 					<Select
 						items={teamSelectItems}
 						value={params.teamId}
@@ -148,16 +151,28 @@ function RouteComponent() {
 				</div>
 			</div>
 			{hasTeam ? (
-				<SidebarProvider
-					nested
-					className='container mx-auto flex-1 overflow-hidden rounded-xl border bg-background'
-					width='14rem'
-				>
-					<TeamSidebar teamId={params.teamId} pages={pages ?? []} />
-					<SidebarInset>
-						<Outlet />
-					</SidebarInset>
-				</SidebarProvider>
+				<>
+					<SidebarProvider
+						nested
+						className='container mx-auto flex-1 overflow-hidden rounded-xl border bg-background'
+						width='14rem'
+					>
+						<TeamSidebar
+							teamId={params.teamId}
+							pages={pages ?? []}
+							onEditQuickLinks={() => setEditQuickLinks(true)}
+						/>
+						<SidebarInset>
+							<Outlet />
+						</SidebarInset>
+					</SidebarProvider>
+					<QuickLinksDialog
+						open={editQuickLinks}
+						onOpenChange={setEditQuickLinks}
+						scope='team'
+						teamId={params.teamId}
+					/>
+				</>
 			) : (
 				<Empty className='container mx-auto flex-1 rounded-xl border'>
 					<EmptyHeader>

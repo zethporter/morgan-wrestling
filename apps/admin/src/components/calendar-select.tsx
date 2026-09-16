@@ -14,26 +14,45 @@ type Calendar = {
 	name: string;
 	color: string | null;
 };
+
+const NO_CALENDAR = '__no_default_calendar__';
+
 export const CalendarSelect = ({
 	calendars,
 	value,
 	onValueChange,
+	allowNone = false,
 }: {
 	calendars: Array<Calendar>;
-	value: string;
+	value: string | null;
 	onValueChange: (value: string | null) => void;
+	allowNone?: boolean;
 }) => {
+	const selected = value ?? NO_CALENDAR;
+
 	return (
-		<Select value={value} onValueChange={onValueChange}>
+		<Select
+			value={selected}
+			onValueChange={(value) =>
+				onValueChange(value === NO_CALENDAR ? null : value)
+			}
+		>
 			<SelectTrigger>
 				<SelectValue
 					children={(value) => {
-						const currCal = (calendars ?? []).find(
+						if (value === NO_CALENDAR) {
+							return (
+								<span className='text-muted-foreground'>
+									No default calendar
+								</span>
+							);
+						}
+						const currCal = calendars?.find(
 							(calendar) => calendar.id === value,
 						);
-						if (!!currCal) {
+						if (currCal) {
 							return (
-								<div className='flex gap-2 items-center'>
+								<div className='flex items-center gap-2'>
 									<CalendarIcon
 										className={cn(
 											calendarColors[
@@ -50,6 +69,11 @@ export const CalendarSelect = ({
 				/>
 			</SelectTrigger>
 			<SelectContent alignItemWithTrigger={false}>
+				{allowNone && (
+					<SelectItem value={NO_CALENDAR}>
+						<span className='text-muted-foreground'>No default calendar</span>
+					</SelectItem>
+				)}
 				{calendars.map(({ id, name, color }) => (
 					<SelectItem key={id} value={id}>
 						<CalendarIcon

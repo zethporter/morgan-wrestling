@@ -185,7 +185,7 @@ export const updateQuickLink = createServerFn({ method: 'POST' })
 const deleteQuickLinkSchema = z.object({
 	id: z.number(),
 });
-export const deleteQuickLink = createServerFn({ method: 'GET' })
+export const deleteQuickLink = createServerFn({ method: 'POST' })
 	.validator(deleteQuickLinkSchema)
 	.handler(async ({ data }) => {
 		await requirePermission({ quickLink: ['delete'] });
@@ -271,7 +271,7 @@ const updateTeamQuickLinkSchema = z.object({
 export const updateTeamQuickLink = createServerFn({ method: 'POST' })
 	.validator(updateTeamQuickLinkSchema)
 	.handler(async ({ data }) => {
-		const session = await requirePermission({ quickLink: ['update'] });
+		const session = await requirePermission({ teamQuickLink: ['update'] });
 		const today = new Date();
 		return await getDb()
 			.update(teamQuickLinks)
@@ -289,10 +289,10 @@ export const updateTeamQuickLink = createServerFn({ method: 'POST' })
 const deleteTeamQuickLinkSchema = z.object({
 	id: z.number(),
 });
-export const deleteTeamQuickLink = createServerFn({ method: 'GET' })
+export const deleteTeamQuickLink = createServerFn({ method: 'POST' })
 	.validator(deleteTeamQuickLinkSchema)
 	.handler(async ({ data }) => {
-		await requirePermission({ quickLink: ['delete'] });
+		await requirePermission({ teamQuickLink: ['delete'] });
 		return await getDb()
 			.delete(teamQuickLinks)
 			.where(eq(teamQuickLinks.id, data.id))
@@ -308,12 +308,13 @@ export const deleteTeamQuickLink = createServerFn({ method: 'GET' })
 const getTeamQuickLinksSchema = z
 	.object({
 		status: z.literal(['active', 'inactive', 'all']).default('all'),
+		teamId: z.nanoid().optional(),
 	})
 	.default({ status: 'all' });
 export const getTeamQuickLinks = createServerFn({ method: 'GET' })
 	.validator(getTeamQuickLinksSchema)
 	.handler(async ({ data }) => {
-		await requirePermission({ quickLink: ['read'] });
+		await requirePermission({ teamQuickLink: ['read'] });
 		const query = getDb()
 			.select({
 				id: teamQuickLinks.id,
@@ -324,13 +325,22 @@ export const getTeamQuickLinks = createServerFn({ method: 'GET' })
 			})
 			.from(teamQuickLinks);
 
+		const teamIdFilter =
+			data.teamId !== undefined
+				? eq(teamQuickLinks.teamId, data.teamId)
+				: undefined;
+
 		switch (data.status) {
 			case 'all':
-				return await query;
+				return await (teamIdFilter ? query.where(teamIdFilter) : query);
 			case 'active':
-				return await query.where(eq(teamQuickLinks.active, true));
+				return await query.where(
+					and(teamIdFilter, eq(teamQuickLinks.active, true)),
+				);
 			case 'inactive':
-				return await query.where(eq(teamQuickLinks.active, false));
+				return await query.where(
+					and(teamIdFilter, eq(teamQuickLinks.active, false)),
+				);
 		}
 	});
 

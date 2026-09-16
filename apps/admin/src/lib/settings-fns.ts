@@ -31,5 +31,6 @@ export const updateSettings = createServerFn({ method: 'POST' })
 				id: settings.id,
 				homeContent: settings.homeContent,
 				homeContentMetadata: settings.homeContentMetadata,
+				defaultCalendar: settings.defaultCalendar,
 			});
 	});
