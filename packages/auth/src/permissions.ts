@@ -15,6 +15,7 @@ export const statement = {
 	teamPage: ['create', 'read', 'update', 'delete'],
 	quickLink: ['create', 'read', 'update', 'delete'],
 	teamQuickLink: ['create', 'read', 'update', 'delete'],
+	setting: ['create', 'read', 'update', 'delete'],
 } as const;
 
 export const ac = createAccessControl(statement);
@@ -29,6 +30,7 @@ export const admin = ac.newRole({
 	teamPage: ['create', 'read', 'update', 'delete'],
 	quickLink: ['create', 'read', 'update', 'delete'],
 	teamQuickLink: ['create', 'read', 'update', 'delete'],
+	setting: ['create', 'read', 'update', 'delete'],
 });
 
 /**
@@ -43,6 +45,7 @@ export const manager = ac.newRole({
 	teamPage: ['create', 'read', 'update', 'delete'],
 	quickLink: ['create', 'read', 'update', 'delete'],
 	teamQuickLink: ['create', 'read', 'update', 'delete'],
+	setting: ['create', 'read', 'update', 'delete'],
 });
 
 /**
@@ -58,6 +61,7 @@ export const coach = ac.newRole({
 	teamPage: ['create', 'read', 'update'],
 	quickLink: ['read'],
 	teamQuickLink: ['create', 'read', 'update'],
+	setting: ['read', 'update'],
 });
 
 /**
@@ -72,6 +76,7 @@ export const contributor = ac.newRole({
 	teamPage: ['create', 'read', 'update'],
 	quickLink: ['read'],
 	teamQuickLink: ['create', 'read', 'update'],
+	setting: ['read'],
 });
 
 /** Default role for a new signup: sees everything, changes nothing. */
@@ -83,6 +88,7 @@ export const user = ac.newRole({
 	teamPage: ['read'],
 	quickLink: ['read'],
 	teamQuickLink: ['read'],
+	setting: ['read'],
 });
 
 /** Signed in but not yet approved for anything. */

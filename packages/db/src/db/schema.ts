@@ -123,6 +123,16 @@ export const teamPages = sqliteTable('team_pages', {
 export const teamPageInsertSchema = createInsertSchema(teamPages);
 export const teamPageUpdateSchema = createUpdateSchema(teamPages);
 
+export const settings = sqliteTable('settings', {
+	id: text({ mode: 'text' }).primaryKey(),
+	homeContent: text('home_content'),
+	homeContentMetadata: text('home_content_metadata'),
+	defaultCalendar: text('default_calendar').references(() => calendars.id),
+});
+export const settingInsertSchema = createInsertSchema(settings);
+export const settingSelectSchema = createSelectSchema(settings);
+export const settingUpdateSchema = createUpdateSchema(settings);
+
 export const quickLinks = sqliteTable('quick_links', {
 	id: integer({ mode: 'number' }).primaryKey({
 		autoIncrement: true,

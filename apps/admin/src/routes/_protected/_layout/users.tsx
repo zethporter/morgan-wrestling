@@ -12,6 +12,7 @@ import { toast } from '@morgan-wrestling/ui/components/ui/toast';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
+import { UsersRoundIcon } from 'lucide-react';
 import { checkPermission, removeAdminRole, setAdminRole } from '#/lib/auth-fns';
 import { userPageQueryOptions } from '#/lib/auth-opts';
 
@@ -92,41 +93,47 @@ function RouteComponent() {
 	};
 
 	return (
-		<div className='p-4'>
-			<Table>
-				<TableHeader>
-					<TableRow>
-						<TableHead>Name</TableHead>
-						<TableHead>Email</TableHead>
-						<TableHead>Roles</TableHead>
-						<TableHead></TableHead>
-					</TableRow>
-				</TableHeader>
-				<TableBody>
-					{data.users.map((user) => {
-						const isAdmin =
-							typeof user.role === 'string' && user.role.includes('admin');
-						return (
-							<TableRow key={user.id}>
-								<TableCell>{user.name}</TableCell>
-								<TableCell>{user.email}</TableCell>
-								<TableCell>
-									<RolesBadges roles={user.role ?? ''} />
-								</TableCell>
-								<TableCell>
-									<Button
-										variant={isAdmin ? 'destructive' : 'default'}
-										onClick={() => toggleAdmin(user.id, isAdmin)}
-										size='xs'
-									>
-										{isAdmin ? 'Remove Admin' : 'Make Admin'}
-									</Button>
-								</TableCell>
-							</TableRow>
-						);
-					})}
-				</TableBody>
-			</Table>
+		<div className='p-4 h-full flex flex-col gap-4'>
+			<h1 className='text-2xl font-bold items-center flex flex-row justify-start gap-2'>
+				<UsersRoundIcon />
+				<span> Users</span>
+			</h1>
+			<div className='grow w-full overflow-auto border border-foreground/10 p-4 rounded-md'>
+				<Table>
+					<TableHeader>
+						<TableRow>
+							<TableHead>Name</TableHead>
+							<TableHead>Email</TableHead>
+							<TableHead>Roles</TableHead>
+							<TableHead></TableHead>
+						</TableRow>
+					</TableHeader>
+					<TableBody>
+						{data.users.map((user) => {
+							const isAdmin =
+								typeof user.role === 'string' && user.role.includes('admin');
+							return (
+								<TableRow key={user.id}>
+									<TableCell>{user.name}</TableCell>
+									<TableCell>{user.email}</TableCell>
+									<TableCell>
+										<RolesBadges roles={user.role ?? ''} />
+									</TableCell>
+									<TableCell>
+										<Button
+											variant={isAdmin ? 'destructive' : 'default'}
+											onClick={() => toggleAdmin(user.id, isAdmin)}
+											size='xs'
+										>
+											{isAdmin ? 'Remove Admin' : 'Make Admin'}
+										</Button>
+									</TableCell>
+								</TableRow>
+							);
+						})}
+					</TableBody>
+				</Table>
+			</div>
 		</div>
 	);
 }
