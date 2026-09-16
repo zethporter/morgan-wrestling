@@ -1,6 +1,7 @@
 {
   "name": "morgan-wrestling",
   "private": true,
+  "packageManager": "bun@1.4.2",
   "workspaces": ["apps/*", "packages/*"],
   "scripts": {
     "check": "biome check",
@@ -8,7 +9,8 @@
     "lint": "biome lint"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.8"
+    "@biomejs/biome": "2.5.12",
+    "@types/bun": "^1.4.2"
   },
   "dependencies": {
     "typescript": "^7.0.2"

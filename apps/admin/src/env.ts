@@ -8,6 +8,20 @@ export const env = createEnv({
 		TURSO_BETTER_AUTH_CONNECTION_URL: z.string(),
 		TURSO_BETTER_AUTH_TOKEN: z.string(),
 		BETTER_AUTH_SECRET: z.string(),
+		/**
+		 * Versioned secret list, `<version>:<secret>` newest-first. When set, the
+		 * first entry signs session cookies and encrypts new at-rest payloads;
+		 * older versions only decrypt existing ones. Unset in dev, where
+		 * BETTER_AUTH_SECRET alone is used.
+		 */
+		BETTER_AUTH_SECRETS: z
+			.string()
+			.regex(
+				/^\d+:.+(,\d+:.+)*$/,
+				'Expected comma-separated "<version>:<secret>" entries',
+			)
+			.optional(),
+		BETTER_AUTH_URL: z.url().optional(),
 		GOOGLE_CLIENT_ID: z.string(),
 		GOOGLE_CLIENT_SECRET: z.string(),
 	},
@@ -34,6 +48,8 @@ export const env = createEnv({
 			process.env.TURSO_BETTER_AUTH_CONNECTION_URL,
 		TURSO_BETTER_AUTH_TOKEN: process.env.TURSO_BETTER_AUTH_TOKEN,
 		BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+		BETTER_AUTH_SECRETS: process.env.BETTER_AUTH_SECRETS,
+		BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
 		GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
 		GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
 	},

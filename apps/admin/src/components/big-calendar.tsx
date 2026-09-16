@@ -3,13 +3,13 @@ import {
 	CalendarDayButton,
 } from '@morgan-wrestling/ui/components/ui/calendar';
 import { Card, CardContent } from '@morgan-wrestling/ui/components/ui/card';
-import { createFileRoute } from '@tanstack/react-router';
 import { addDays } from 'date-fns';
 import { CircleIcon } from 'lucide-react';
 import * as React from 'react';
 import { type DateRange } from 'react-day-picker';
 
-function CalendarCustomDays() {
+
+export function CalendarCustomDays() {
 	const [range, setRange] = React.useState<DateRange | undefined>({
 		from: new Date(new Date().getFullYear(), 11, 8),
 		to: addDays(new Date(new Date().getFullYear(), 11, 8), 10),
@@ -53,17 +53,5 @@ function CalendarCustomDays() {
 				/>
 			</CardContent>
 		</Card>
-	);
-}
-
-export const Route = createFileRoute('/_protected/_layout/calendars')({
-	component: RouteComponent,
-});
-
-function RouteComponent() {
-	return (
-		<div className='p-5 flex justify-center w-full'>
-			<CalendarCustomDays />
-		</div>
 	);
 }

@@ -10,21 +10,32 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProtectedRouteImport } from './routes/_protected'
-import { Route as LoginRouteImport } from './routes/login'
+import { Route as LogInRouteImport } from './routes/log-in'
+import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as ProtectedLayoutRouteImport } from './routes/_protected/_layout'
 import { Route as ProtectedLayoutIndexRouteImport } from './routes/_protected/_layout/index'
-import { Route as ProtectedLayoutCalendarsRouteImport } from './routes/_protected/_layout/calendars'
 import { Route as ProtectedLayoutHomePageRouteImport } from './routes/_protected/_layout/home-page'
-import { Route as ProtectedLayoutTeamsRouteImport } from './routes/_protected/_layout/teams'
+import { Route as ProtectedLayoutUsersRouteImport } from './routes/_protected/_layout/users'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as ProtectedLayoutCalendarsIndexRouteImport } from './routes/_protected/_layout/calendars/index'
+import { Route as ProtectedLayoutCalendarsCalendarIdRouteImport } from './routes/_protected/_layout/calendars/$calendarId'
+import { Route as ProtectedLayoutTeamsIndexRouteImport } from './routes/_protected/_layout/teams/index'
+import { Route as ProtectedLayoutTeamsTeamIdRouteImport } from './routes/_protected/_layout/teams/$teamId'
+import { Route as ProtectedLayoutTeamsTeamIdIndexRouteImport } from './routes/_protected/_layout/teams/$teamId/index'
+import { Route as ProtectedLayoutTeamsTeamIdPagesPageIdRouteImport } from './routes/_protected/_layout/teams/$teamId/pages/$pageId'
 
 const ProtectedRoute = ProtectedRouteImport.update({
   id: '/_protected',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const LogInRoute = LogInRouteImport.update({
+  id: '/log-in',
+  path: '/log-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignUpRoute = SignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtectedLayoutRoute = ProtectedLayoutRouteImport.update({
@@ -36,20 +47,14 @@ const ProtectedLayoutIndexRoute = ProtectedLayoutIndexRouteImport.update({
   path: '/',
   getParentRoute: () => ProtectedLayoutRoute,
 } as any)
-const ProtectedLayoutCalendarsRoute =
-  ProtectedLayoutCalendarsRouteImport.update({
-    id: '/calendars',
-    path: '/calendars',
-    getParentRoute: () => ProtectedLayoutRoute,
-  } as any)
 const ProtectedLayoutHomePageRoute = ProtectedLayoutHomePageRouteImport.update({
   id: '/home-page',
   path: '/home-page',
   getParentRoute: () => ProtectedLayoutRoute,
 } as any)
-const ProtectedLayoutTeamsRoute = ProtectedLayoutTeamsRouteImport.update({
-  id: '/teams',
-  path: '/teams',
+const ProtectedLayoutUsersRoute = ProtectedLayoutUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
   getParentRoute: () => ProtectedLayoutRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
@@ -57,55 +62,137 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProtectedLayoutCalendarsIndexRoute =
+  ProtectedLayoutCalendarsIndexRouteImport.update({
+    id: '/calendars/',
+    path: '/calendars/',
+    getParentRoute: () => ProtectedLayoutRoute,
+  } as any)
+const ProtectedLayoutCalendarsCalendarIdRoute =
+  ProtectedLayoutCalendarsCalendarIdRouteImport.update({
+    id: '/calendars/$calendarId',
+    path: '/calendars/$calendarId',
+    getParentRoute: () => ProtectedLayoutRoute,
+  } as any)
+const ProtectedLayoutTeamsIndexRoute =
+  ProtectedLayoutTeamsIndexRouteImport.update({
+    id: '/teams/',
+    path: '/teams/',
+    getParentRoute: () => ProtectedLayoutRoute,
+  } as any)
+const ProtectedLayoutTeamsTeamIdRoute =
+  ProtectedLayoutTeamsTeamIdRouteImport.update({
+    id: '/teams/$teamId',
+    path: '/teams/$teamId',
+    getParentRoute: () => ProtectedLayoutRoute,
+  } as any)
+const ProtectedLayoutTeamsTeamIdIndexRoute =
+  ProtectedLayoutTeamsTeamIdIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => ProtectedLayoutTeamsTeamIdRoute,
+  } as any)
+const ProtectedLayoutTeamsTeamIdPagesPageIdRoute =
+  ProtectedLayoutTeamsTeamIdPagesPageIdRouteImport.update({
+    id: '/pages/$pageId',
+    path: '/pages/$pageId',
+    getParentRoute: () => ProtectedLayoutTeamsTeamIdRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof ProtectedLayoutIndexRoute
-  '/login': typeof LoginRoute
-  '/calendars': typeof ProtectedLayoutCalendarsRoute
+  '/log-in': typeof LogInRoute
+  '/sign-up': typeof SignUpRoute
   '/home-page': typeof ProtectedLayoutHomePageRoute
-  '/teams': typeof ProtectedLayoutTeamsRoute
+  '/users': typeof ProtectedLayoutUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/calendars/$calendarId': typeof ProtectedLayoutCalendarsCalendarIdRoute
+  '/teams/$teamId': typeof ProtectedLayoutTeamsTeamIdRouteWithChildren
+  '/calendars/': typeof ProtectedLayoutCalendarsIndexRoute
+  '/teams/': typeof ProtectedLayoutTeamsIndexRoute
+  '/teams/$teamId/': typeof ProtectedLayoutTeamsTeamIdIndexRoute
+  '/teams/$teamId/pages/$pageId': typeof ProtectedLayoutTeamsTeamIdPagesPageIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof ProtectedLayoutIndexRoute
-  '/login': typeof LoginRoute
-  '/calendars': typeof ProtectedLayoutCalendarsRoute
+  '/log-in': typeof LogInRoute
+  '/sign-up': typeof SignUpRoute
   '/home-page': typeof ProtectedLayoutHomePageRoute
-  '/teams': typeof ProtectedLayoutTeamsRoute
+  '/users': typeof ProtectedLayoutUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/calendars/$calendarId': typeof ProtectedLayoutCalendarsCalendarIdRoute
+  '/calendars': typeof ProtectedLayoutCalendarsIndexRoute
+  '/teams': typeof ProtectedLayoutTeamsIndexRoute
+  '/teams/$teamId': typeof ProtectedLayoutTeamsTeamIdIndexRoute
+  '/teams/$teamId/pages/$pageId': typeof ProtectedLayoutTeamsTeamIdPagesPageIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_protected': typeof ProtectedRouteWithChildren
-  '/login': typeof LoginRoute
+  '/log-in': typeof LogInRoute
+  '/sign-up': typeof SignUpRoute
   '/_protected/_layout': typeof ProtectedLayoutRouteWithChildren
-  '/_protected/_layout/calendars': typeof ProtectedLayoutCalendarsRoute
   '/_protected/_layout/home-page': typeof ProtectedLayoutHomePageRoute
-  '/_protected/_layout/teams': typeof ProtectedLayoutTeamsRoute
+  '/_protected/_layout/users': typeof ProtectedLayoutUsersRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/_protected/_layout/': typeof ProtectedLayoutIndexRoute
+  '/_protected/_layout/calendars/$calendarId': typeof ProtectedLayoutCalendarsCalendarIdRoute
+  '/_protected/_layout/teams/$teamId': typeof ProtectedLayoutTeamsTeamIdRouteWithChildren
+  '/_protected/_layout/calendars/': typeof ProtectedLayoutCalendarsIndexRoute
+  '/_protected/_layout/teams/': typeof ProtectedLayoutTeamsIndexRoute
+  '/_protected/_layout/teams/$teamId/': typeof ProtectedLayoutTeamsTeamIdIndexRoute
+  '/_protected/_layout/teams/$teamId/pages/$pageId': typeof ProtectedLayoutTeamsTeamIdPagesPageIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/login' | '/calendars' | '/home-page' | '/teams' | '/api/auth/$'
+    | '/'
+    | '/log-in'
+    | '/sign-up'
+    | '/home-page'
+    | '/users'
+    | '/api/auth/$'
+    | '/calendars/$calendarId'
+    | '/teams/$teamId'
+    | '/calendars/'
+    | '/teams/'
+    | '/teams/$teamId/'
+    | '/teams/$teamId/pages/$pageId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/calendars' | '/home-page' | '/teams' | '/api/auth/$'
+  to:
+    | '/'
+    | '/log-in'
+    | '/sign-up'
+    | '/home-page'
+    | '/users'
+    | '/api/auth/$'
+    | '/calendars/$calendarId'
+    | '/calendars'
+    | '/teams'
+    | '/teams/$teamId'
+    | '/teams/$teamId/pages/$pageId'
   id:
     | '__root__'
     | '/_protected'
-    | '/login'
+    | '/log-in'
+    | '/sign-up'
     | '/_protected/_layout'
-    | '/_protected/_layout/calendars'
     | '/_protected/_layout/home-page'
-    | '/_protected/_layout/teams'
+    | '/_protected/_layout/users'
     | '/api/auth/$'
     | '/_protected/_layout/'
+    | '/_protected/_layout/calendars/$calendarId'
+    | '/_protected/_layout/teams/$teamId'
+    | '/_protected/_layout/calendars/'
+    | '/_protected/_layout/teams/'
+    | '/_protected/_layout/teams/$teamId/'
+    | '/_protected/_layout/teams/$teamId/pages/$pageId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   ProtectedRoute: typeof ProtectedRouteWithChildren
-  LoginRoute: typeof LoginRoute
+  LogInRoute: typeof LogInRoute
+  SignUpRoute: typeof SignUpRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -118,11 +205,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/log-in': {
+      id: '/log-in'
+      path: '/log-in'
+      fullPath: '/log-in'
+      preLoaderRoute: typeof LogInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sign-up': {
+      id: '/sign-up'
+      path: '/sign-up'
+      fullPath: '/sign-up'
+      preLoaderRoute: typeof SignUpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_protected/_layout': {
@@ -139,13 +233,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedLayoutIndexRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
-    '/_protected/_layout/calendars': {
-      id: '/_protected/_layout/calendars'
-      path: '/calendars'
-      fullPath: '/calendars'
-      preLoaderRoute: typeof ProtectedLayoutCalendarsRouteImport
-      parentRoute: typeof ProtectedLayoutRoute
-    }
     '/_protected/_layout/home-page': {
       id: '/_protected/_layout/home-page'
       path: '/home-page'
@@ -153,11 +240,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProtectedLayoutHomePageRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
-    '/_protected/_layout/teams': {
-      id: '/_protected/_layout/teams'
-      path: '/teams'
-      fullPath: '/teams'
-      preLoaderRoute: typeof ProtectedLayoutTeamsRouteImport
+    '/_protected/_layout/users': {
+      id: '/_protected/_layout/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof ProtectedLayoutUsersRouteImport
       parentRoute: typeof ProtectedLayoutRoute
     }
     '/api/auth/$': {
@@ -167,21 +254,87 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_protected/_layout/calendars/': {
+      id: '/_protected/_layout/calendars/'
+      path: '/calendars'
+      fullPath: '/calendars/'
+      preLoaderRoute: typeof ProtectedLayoutCalendarsIndexRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
+    '/_protected/_layout/calendars/$calendarId': {
+      id: '/_protected/_layout/calendars/$calendarId'
+      path: '/calendars/$calendarId'
+      fullPath: '/calendars/$calendarId'
+      preLoaderRoute: typeof ProtectedLayoutCalendarsCalendarIdRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
+    '/_protected/_layout/teams/': {
+      id: '/_protected/_layout/teams/'
+      path: '/teams'
+      fullPath: '/teams/'
+      preLoaderRoute: typeof ProtectedLayoutTeamsIndexRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
+    '/_protected/_layout/teams/$teamId': {
+      id: '/_protected/_layout/teams/$teamId'
+      path: '/teams/$teamId'
+      fullPath: '/teams/$teamId'
+      preLoaderRoute: typeof ProtectedLayoutTeamsTeamIdRouteImport
+      parentRoute: typeof ProtectedLayoutRoute
+    }
+    '/_protected/_layout/teams/$teamId/': {
+      id: '/_protected/_layout/teams/$teamId/'
+      path: '/'
+      fullPath: '/teams/$teamId/'
+      preLoaderRoute: typeof ProtectedLayoutTeamsTeamIdIndexRouteImport
+      parentRoute: typeof ProtectedLayoutTeamsTeamIdRoute
+    }
+    '/_protected/_layout/teams/$teamId/pages/$pageId': {
+      id: '/_protected/_layout/teams/$teamId/pages/$pageId'
+      path: '/pages/$pageId'
+      fullPath: '/teams/$teamId/pages/$pageId'
+      preLoaderRoute: typeof ProtectedLayoutTeamsTeamIdPagesPageIdRouteImport
+      parentRoute: typeof ProtectedLayoutTeamsTeamIdRoute
+    }
   }
 }
 
+interface ProtectedLayoutTeamsTeamIdRouteChildren {
+  ProtectedLayoutTeamsTeamIdIndexRoute: typeof ProtectedLayoutTeamsTeamIdIndexRoute
+  ProtectedLayoutTeamsTeamIdPagesPageIdRoute: typeof ProtectedLayoutTeamsTeamIdPagesPageIdRoute
+}
+
+const ProtectedLayoutTeamsTeamIdRouteChildren: ProtectedLayoutTeamsTeamIdRouteChildren =
+  {
+    ProtectedLayoutTeamsTeamIdIndexRoute: ProtectedLayoutTeamsTeamIdIndexRoute,
+    ProtectedLayoutTeamsTeamIdPagesPageIdRoute:
+      ProtectedLayoutTeamsTeamIdPagesPageIdRoute,
+  }
+
+const ProtectedLayoutTeamsTeamIdRouteWithChildren =
+  ProtectedLayoutTeamsTeamIdRoute._addFileChildren(
+    ProtectedLayoutTeamsTeamIdRouteChildren,
+  )
+
 interface ProtectedLayoutRouteChildren {
-  ProtectedLayoutCalendarsRoute: typeof ProtectedLayoutCalendarsRoute
   ProtectedLayoutHomePageRoute: typeof ProtectedLayoutHomePageRoute
-  ProtectedLayoutTeamsRoute: typeof ProtectedLayoutTeamsRoute
+  ProtectedLayoutUsersRoute: typeof ProtectedLayoutUsersRoute
   ProtectedLayoutIndexRoute: typeof ProtectedLayoutIndexRoute
+  ProtectedLayoutCalendarsCalendarIdRoute: typeof ProtectedLayoutCalendarsCalendarIdRoute
+  ProtectedLayoutTeamsTeamIdRoute: typeof ProtectedLayoutTeamsTeamIdRouteWithChildren
+  ProtectedLayoutCalendarsIndexRoute: typeof ProtectedLayoutCalendarsIndexRoute
+  ProtectedLayoutTeamsIndexRoute: typeof ProtectedLayoutTeamsIndexRoute
 }
 
 const ProtectedLayoutRouteChildren: ProtectedLayoutRouteChildren = {
-  ProtectedLayoutCalendarsRoute: ProtectedLayoutCalendarsRoute,
   ProtectedLayoutHomePageRoute: ProtectedLayoutHomePageRoute,
-  ProtectedLayoutTeamsRoute: ProtectedLayoutTeamsRoute,
+  ProtectedLayoutUsersRoute: ProtectedLayoutUsersRoute,
   ProtectedLayoutIndexRoute: ProtectedLayoutIndexRoute,
+  ProtectedLayoutCalendarsCalendarIdRoute:
+    ProtectedLayoutCalendarsCalendarIdRoute,
+  ProtectedLayoutTeamsTeamIdRoute: ProtectedLayoutTeamsTeamIdRouteWithChildren,
+  ProtectedLayoutCalendarsIndexRoute: ProtectedLayoutCalendarsIndexRoute,
+  ProtectedLayoutTeamsIndexRoute: ProtectedLayoutTeamsIndexRoute,
 }
 
 const ProtectedLayoutRouteWithChildren = ProtectedLayoutRoute._addFileChildren(
@@ -202,7 +355,8 @@ const ProtectedRouteWithChildren = ProtectedRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   ProtectedRoute: ProtectedRouteWithChildren,
-  LoginRoute: LoginRoute,
+  LogInRoute: LogInRoute,
+  SignUpRoute: SignUpRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

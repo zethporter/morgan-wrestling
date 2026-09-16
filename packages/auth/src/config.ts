@@ -1,10 +1,15 @@
 import { drizzleAdapter } from '@better-auth/drizzle-adapter';
 import { betterAuth } from 'better-auth';
-import { adminClient } from 'better-auth/client/plugins';
-import { admin, oneTap, organization, twoFactor } from 'better-auth/plugins';
+import {
+	admin as adminPlugin,
+	oneTap,
+	organization,
+	twoFactor,
+} from 'better-auth/plugins';
 import { tanstackStartCookies } from 'better-auth/tanstack-start';
 import type { createAuthDb } from './db';
-import { ac, guest, manager, user } from './permissions';
+import { ac, roles } from './permissions';
+import * as authSchema from './schema';
 
 export type AuthPlugin = Parameters<typeof betterAuth>[0]['plugins'][number];
 
@@ -21,18 +26,22 @@ export interface AuthConfig {
 export function createAuth(config: AuthConfig) {
 	const {
 		db,
-		appName = 'Wrestler of the Day',
+		appName = 'Morgan Wrestling Admin',
 		adminUserIds = [],
 		plugins: customPlugins = [],
-		emailAndPassword = { enabled: true },
 	} = config;
 
 	return betterAuth({
 		database: drizzleAdapter(db, {
 			provider: 'sqlite',
+			schema: authSchema,
 		}),
 		appName,
-		emailAndPassword,
+		baseURL: process.env.BETTER_AUTH_URL,
+		emailAndPassword: {
+			enabled: true,
+			autoSignIn: true,
+		},
 		socialProviders: {
 			google: {
 				clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -42,22 +51,20 @@ export function createAuth(config: AuthConfig) {
 		plugins: [
 			twoFactor(),
 			oneTap(),
-			tanstackStartCookies(),
 			organization(),
-			admin({
+			adminPlugin({
 				adminUserIds,
-				plugins: [
-					adminClient({
-						ac,
-						roles: {
-							manager,
-							user,
-							guest,
-						},
-					}),
-				],
+				ac,
+				roles,
+				defaultRole: 'user',
+				adminRoles: ['admin'],
 			}),
 			...customPlugins,
+			// Must stay last: plugins with `hooks.after` running after the cookie
+			// integration set cookies that never reach the framework cookie store.
+			tanstackStartCookies(),
 		],
 	});
 }
+
+export default createAuth;

@@ -1,54 +1,17 @@
 {
-  "include": [
-    "**/*.ts",
-    "**/*.tsx"
-  ],
+  "extends": "../../tsconfig.base.json",
+  "include": ["**/*.ts", "**/*.tsx"],
   "compilerOptions": {
-    "target": "ES2022",
     "jsx": "react-jsx",
-    "module": "ESNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client", "bun"],
     "paths": {
-      "#/*": [
-        "./src/*"
-      ],
-      "@/*": [
-        "./src/*"
-      ],
-      "@morgan-wrestling/ui/*": [
-        "../../packages/ui/src/*"
-      ],
-      "@ui/*": [
-        "../../packages/ui/src/*"
-      ],
-      "@auth/*": [
-        "../../packages/auth/src/*"
-      ],
-      "@db/*": [
-        "../../packages/db/src/*"
-      ],
-      "@styles/*": [
-        "../../packages/styles/src/*"
-      ]
-    },
-    "lib": [
-      "ES2022",
-      "DOM",
-      "DOM.Iterable"
-    ],
-    "types": [
-      "vite/client"
-    ],
-    /* Bundler mode */
-    "moduleResolution": "bundler",
-    "allowImportingTsExtensions": true,
-    "verbatimModuleSyntax": true,
-    "noEmit": true,
-    /* Linting */
-    "skipLibCheck": true,
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+      "#/*": ["./src/*"],
+      // @morgan-wrestling/ui is a source-only package with mixed .ts/.tsx files,
+      // so its "./*" export pattern can't do extension resolution. This mapping
+      // is what actually resolves it (Vite reads it via resolve.tsconfigPaths).
+      // auth/db/styles need no mapping — they use explicit subpath exports.
+      "@morgan-wrestling/ui/*": ["../../packages/ui/src/*"]
+    }
   }
 }

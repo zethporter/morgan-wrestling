@@ -1,15 +1,15 @@
 import { useCurrentEditor, useEditorState } from '@tiptap/react';
-import { Button } from '@ui/components/ui/button';
-import { ButtonGroup } from '@ui/components/ui/button-group';
+import { Button } from '@morgan-wrestling/ui/components/ui/button';
+import { ButtonGroup } from '@morgan-wrestling/ui/components/ui/button-group';
 import {
 	Popover,
 	PopoverContent,
 	PopoverTitle,
 	PopoverTrigger,
-} from '@ui/components/ui/popover';
-import { Skeleton } from '@ui/components/ui/skeleton';
-import { Toggle } from '@ui/components/ui/toggle';
-import { cn } from '@ui/lib/utils';
+} from '@morgan-wrestling/ui/components/ui/popover';
+import { Skeleton } from '@morgan-wrestling/ui/components/ui/skeleton';
+import { Toggle } from '@morgan-wrestling/ui/components/ui/toggle';
+import { cn } from '@morgan-wrestling/ui/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { ChevronDownIcon, HighlighterIcon } from 'lucide-react';
 import { highlightClasses } from '../extensions/highlight';

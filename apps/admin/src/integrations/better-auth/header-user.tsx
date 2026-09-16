@@ -1,4 +1,4 @@
-import { authClient } from '@auth/lib/auth-client';
+import { authClient } from '@morgan-wrestling/auth/lib/auth-client';
 
 export default function BetterAuthHeader() {
 	const { data: session, isPending } = authClient.useSession();

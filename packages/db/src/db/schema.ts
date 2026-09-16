@@ -21,6 +21,7 @@ export const calendars = sqliteTable('calendars', {
 });
 export const calendarInsertSchema = createInsertSchema(calendars);
 export const calendarSelectSchema = createSelectSchema(calendars);
+export const calendarUpdateSchema = createUpdateSchema(calendars);
 
 export const calendarEventTypes = sqliteTable('calendar_event_types', {
 	id: integer({ mode: 'number' }).primaryKey({
@@ -40,6 +41,8 @@ export const calendarEventTypeInsertSchema =
 	createInsertSchema(calendarEventTypes);
 export const calendarEventTypeSelectSchema =
 	createSelectSchema(calendarEventTypes);
+export const calendarEventTypeUpdateSchema =
+	createUpdateSchema(calendarEventTypes);
 
 export const calendarEvents = sqliteTable('calendar_events', {
 	id: integer({ mode: 'number' }).primaryKey({
@@ -72,6 +75,7 @@ export const calendarEvents = sqliteTable('calendar_events', {
 });
 export const calendarEventInsertSchema = createInsertSchema(calendarEvents);
 export const calendarEventSelectSchema = createSelectSchema(calendarEvents);
+export const calendarEventUpdateSchema = createUpdateSchema(calendarEvents);
 
 export const teams = sqliteTable('teams', {
 	id: text({ mode: 'text' }).primaryKey(),
@@ -106,6 +110,7 @@ export const teamPages = sqliteTable('team_pages', {
 	sequenceNumber: integer('sequence_number').notNull(),
 	content: text(),
 	contentMetadata: text('content_metadata'),
+	active: integer({ mode: 'boolean' }),
 	createdAt: integer('created_at', { mode: 'timestamp' }).default(
 		sql`(unixepoch())`,
 	),
@@ -116,7 +121,17 @@ export const teamPages = sqliteTable('team_pages', {
 	updatedBy: text('updated_by').notNull(),
 });
 export const teamPageInsertSchema = createInsertSchema(teamPages);
-export const teamPageSelectSchema = createSelectSchema(teamPages);
+export const teamPageUpdateSchema = createUpdateSchema(teamPages);
+
+export const settings = sqliteTable('settings', {
+	id: text({ mode: 'text' }).primaryKey(),
+	homeContent: text('home_content'),
+	homeContentMetadata: text('home_content_metadata'),
+	defaultCalendar: text('default_calendar').references(() => calendars.id),
+});
+export const settingInsertSchema = createInsertSchema(settings);
+export const settingSelectSchema = createSelectSchema(settings);
+export const settingUpdateSchema = createUpdateSchema(settings);
 
 export const quickLinks = sqliteTable('quick_links', {
 	id: integer({ mode: 'number' }).primaryKey({
@@ -124,6 +139,7 @@ export const quickLinks = sqliteTable('quick_links', {
 	}),
 	title: text().notNull(),
 	url: text().notNull(),
+	active: integer({ mode: 'boolean' }).default(false),
 	createdAt: integer('created_at', { mode: 'timestamp' }).default(
 		sql`(unixepoch())`,
 	),
@@ -134,7 +150,7 @@ export const quickLinks = sqliteTable('quick_links', {
 	updatedBy: text('updated_by').notNull(),
 });
 export const quickLinkInsertSchema = createInsertSchema(quickLinks);
-export const quickLinkSelectSchema = createSelectSchema(quickLinks);
+export const quickLinkUpdateSchema = createUpdateSchema(quickLinks);
 
 export const teamQuickLinks = sqliteTable('team_quick_links', {
 	id: integer({ mode: 'number' }).primaryKey({
@@ -145,6 +161,7 @@ export const teamQuickLinks = sqliteTable('team_quick_links', {
 	}),
 	title: text().notNull(),
 	url: text().notNull(),
+	active: integer({ mode: 'boolean' }).default(false),
 	createdAt: integer('created_at', { mode: 'timestamp' }).default(
 		sql`(unixepoch())`,
 	),
@@ -155,4 +172,4 @@ export const teamQuickLinks = sqliteTable('team_quick_links', {
 	updatedBy: text('updated_by').notNull(),
 });
 export const teamQuickLinkInsertSchema = createInsertSchema(teamQuickLinks);
-export const teamQuickLinkSelectSchema = createSelectSchema(teamQuickLinks);
+export const teamQuickLinkUpdateSchema = createUpdateSchema(teamQuickLinks);

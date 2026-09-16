@@ -1,6 +1,8 @@
 import { ThemeProvider } from '@morgan-wrestling/ui/components/theme-provider';
+import { Toaster } from '@morgan-wrestling/ui/components/ui/toast';
 import { TooltipProvider } from '@morgan-wrestling/ui/components/ui/tooltip';
 import { TanStackDevtools } from '@tanstack/react-devtools';
+import { formDevtoolsPlugin } from '@tanstack/react-form-devtools';
 import { hotkeysDevtoolsPlugin } from '@tanstack/react-hotkeys-devtools';
 import type { QueryClient } from '@tanstack/react-query';
 import {
@@ -48,7 +50,10 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			</head>
 			<body className='bg-background'>
 				<ThemeProvider defaultTheme='system' storageKey='theme'>
-					<TooltipProvider delay={500}>{children}</TooltipProvider>
+					<TooltipProvider delay={500}>
+						{children}
+						<Toaster />
+					</TooltipProvider>
 					<TanStackDevtools
 						config={{
 							position: 'bottom-right',
@@ -60,6 +65,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 							},
 							TanStackQueryDevtools,
 							hotkeysDevtoolsPlugin(),
+							formDevtoolsPlugin(),
 						]}
 					/>
 				</ThemeProvider>
