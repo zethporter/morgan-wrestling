@@ -31,9 +31,13 @@ jobs:
     outputs:
       apps: ${{ steps.apps.outputs.apps }}
     steps:
-      - uses: actions/checkout@v4
+      # Actions are pinned to a commit SHA, not a tag. This is a public repo and
+      # this workflow handles deploy credentials; a mutable tag can be repointed
+      # at malicious code by whoever owns it. Update the SHA and the trailing
+      # comment together.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - uses: dorny/paths-filter@v3
+      - uses: dorny/paths-filter@0e4a8c6effa4802afeda77dc8d303f8176d7dfad # v3
         id: filter
         if: github.event_name == 'push'
         with:
@@ -80,9 +84,13 @@ jobs:
       run:
         working-directory: apps/${{ matrix.app }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          # This job only reads the tree; it never pushes. Don't leave a usable
+          # token in .git/config where a dependency install script could find it.
+          persist-credentials: false
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version-file: package.json
 
