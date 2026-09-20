@@ -1,4 +1,5 @@
 import { and, eq, gte, lte } from '@morgan-wrestling/db/sql';
+import { HTTPException } from 'hono/http-exception';
 import ical, { ICalCalendarMethod } from 'ical-generator';
 import z from 'zod';
 import { calendarEvents, calendarEventTypes, calendars, getDb } from '#/db';
@@ -28,7 +29,9 @@ export const createCalendar = async (opts: CalOptions) => {
 		.where(eq(calendars.id, calendarId));
 
 	if (!calendar) {
-		throw new Error(`Calendar ${calendarId} not found`);
+		throw new HTTPException(404, {
+			message: `Calendar ${calendarId} not found`,
+		});
 	}
 
 	// `and()` drops `undefined` operands, so an absent bound simply contributes

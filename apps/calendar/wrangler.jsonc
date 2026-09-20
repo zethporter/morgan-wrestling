@@ -2,8 +2,18 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "morgan-wrestling-calendar",
   "main": "src/index.ts",
-  "compatibility_date": "2026-09-20",
+  "compatibility_date": "2026-09-18",
   "compatibility_flags": ["nodejs_compat"],
+  "routes": [
+    { "pattern": "calendar.morganwrestling.org", "custom_domain": true }
+  ],
+  // The *.workers.dev subdomain bypasses the edge cache and any WAF rule, so
+  // leaving it enabled would route around both. The custom domain is the only
+  // way in.
+  "workers_dev": false,
+  // Set here rather than as a `wrangler deploy` flag so CI, which runs a bare
+  // `wrangler deploy` for every app, produces the same bundle as a local one.
+  "minify": true,
   // "vars": {
   //   "MY_VAR": "my-variable"
   // },
@@ -29,8 +39,5 @@
   // "ai": {
   //   "binding": "AI"
   // },
-  // "observability": {
-  //   "enabled": true,
-  //   "head_sampling_rate": 1
-  // }
+  "observability": { "enabled": true }
 }

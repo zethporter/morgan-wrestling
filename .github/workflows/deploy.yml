@@ -20,6 +20,7 @@ on:
         default: admin
         options:
           - admin
+          - calendar
 
 permissions:
   contents: read
@@ -51,6 +52,9 @@ jobs:
             admin:
               - *shared
               - 'apps/admin/**'
+            calendar:
+              - *shared
+              - 'apps/calendar/**'
 
       # paths-filter emits a JSON array of matched filter names, which feeds the
       # deploy matrix directly. `shared` is dropped: it is a fragment, not an app.
@@ -102,13 +106,19 @@ jobs:
       # Only VITE_-prefixed vars are needed here; they are inlined into the
       # client bundle at build time. Every server var is read from process.env
       # at runtime and comes from Worker secrets instead.
+      #
+      # `--if-present` because not every app builds: a Worker-only app has no
+      # client bundle and is bundled by `wrangler deploy` itself.
       - name: Build
-        run: bun run build
+        run: bun run --if-present build
         env:
           VITE_APP_TITLE: ${{ vars.VITE_APP_TITLE }}
 
-      # The Cloudflare Vite plugin writes .wrangler/deploy/config.json during
-      # the build, which points wrangler at dist/server/wrangler.json.
+      # For a Vite app the Cloudflare plugin writes .wrangler/deploy/config.json
+      # during the build, which points wrangler at dist/server/wrangler.json.
+      # Worker-only apps have no build output, so wrangler reads wrangler.jsonc
+      # directly. Keep deploy-time flags in that file rather than here, so the
+      # matrix stays app-agnostic and local deploys match CI.
       - name: Deploy
         run: bunx wrangler deploy
         env:
