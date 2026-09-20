@@ -1,0 +1,10 @@
+{
+	"name": "@morgan-wrestling/calendar",
+	"private": true,
+	"imports": {
+		"#/*": "./src/*"
+	},
+	"scripts": {
+		"dev": "echo 'not working'"
+	}
+}
