@@ -5,11 +5,11 @@ Cloudflare Workers that renders whatever the admin app has written into Turso �
 site home content, teams and their pages, quick links, and the calendar — and
 never writes a row back.
 
-> **Status: the home page and the team pages are live (M1–M4).** The app
-> builds, typechecks, tests, and serves `/` plus `/teams/$teamSlug` and
-> `/teams/$teamSlug/$pageSlug` from the real database. Calendar, polish and
-> deploy are still ahead. This file is the design and the build order — delete
-> the "Milestones" section once the app ships.
+> **Status: every page is live (M1–M5).** The app builds, typechecks, tests,
+> and serves the home page, the team pages and the calendar from the real
+> database. What is left is polish (meta tags, `robots.txt`, `sitemap.xml`,
+> cache headers) and deploying it. This file is the design and the build order —
+> delete the "Milestones" section once the app ships.
 
 ---
 
@@ -123,6 +123,12 @@ everything auth- and mutation-shaped.
 
 Match the versions already pinned in `apps/admin/package.json` — one resolved
 copy of React/Router/Query across the workspace is the point.
+
+Two of those turned out not to be needed once the calendar landed:
+`react-day-picker` (the month grid is a server-rendered table — §8) and
+`date-fns` (no timezone support without `@date-fns/tz`, so the date handling
+goes through `Intl`). Neither is imported anywhere in `src/`; drop them from
+this app on the next lockfile change.
 
 Deliberately **absent**: `@morgan-wrestling/auth`, `@tanstack/react-form`,
 `@tanstack/react-form-start`, `nanoid`, `jotai`. If a future change wants any of
@@ -535,18 +541,51 @@ moment it exists.
 `/calendar` lists exactly that set, and `/calendar/$calendarId` 404s for
 anything outside it — otherwise the id is a guessable back door around the list.
 
+`isPublicCalendar` in `src/lib/calendar-fns.ts` is the only place that decides
+this, and every calendar read goes through it — including `getPublicCalendar`,
+which filters by id *and* by public, so guessing an id is not a way round the
+list. It is two `IN` subqueries rather than a CTE because `ReadonlyDb` withholds
+`with(...)` (§4); that costs nothing, since both run in the one round trip:
+
 ```ts
-// The public set, resolved once per request.
-const publicCalendarIds = union(
-  select settings.default_calendar where id = 'site',
-  select distinct teams.default_calendar_id where not null,
-);
+or(
+  inArray(column, select settings.default_calendar where id = 'site'),
+  inArray(column, select distinct teams.default_calendar_id where not null),
+)
 ```
 
 Publishing a calendar is therefore an act of wiring it to the site in the admin,
 which is a reasonable mental model. If it ever becomes too coarse — a team wants
 two public calendars — that is the point to add `calendars.public` and switch
 the filter; the route shape does not change.
+
+Verified against the live database, which has three calendars and references
+exactly one of them:
+
+| Scope | Rows |
+| --- | --- |
+| `public` | the event on `Calendar One` |
+| `site` (`settings.default_calendar`) | the event on `Calendar One` |
+| `calendar`, the referenced id | the event on `Calendar One` |
+| `calendar`, either unreferenced id | none — and the route 404s |
+| `team`, a team with a null default | none |
+
+### Event scopes
+
+`getMonthEvents` and `getUpcomingEvents` both take a scope — `public`,
+`calendar`, `site` or `team` — instead of a calendar id, and resolve it in SQL:
+
+- `site` and `team` look the default calendar up in a subquery rather than
+  taking an id the page fetched first, so the home page and a team page each
+  need one round trip and not two chained ones. They also need no separate
+  public check: being referenced by the site or a team is *what makes* a
+  calendar public.
+- `calendar` is the only one that takes an id, and it ANDs the public filter.
+
+The window for `getMonthEvents` is derived from the month **in the Worker**, so
+the size of the query is not something a URL can ask for. Bounds are
+overlap-based, matching `apps/calendar`, which is what keeps a tournament that
+started last month on this month's first row.
 
 ### What a visitor sees
 
@@ -571,10 +610,67 @@ and(
 )
 ```
 
-`apps/admin/src/components/big-calendar.tsx` is a scaffold with hard-coded dots,
-not a reusable component. If the month grid ends up shared between the two apps,
-promote a real one into `packages/ui`; until then build it in the website and
-leave the admin's alone.
+The same lists are on the home page (scope `site`) and each team page (scope
+`team`), and are hidden rather than shown empty — an "Upcoming events" heading
+with nothing under it tells a visitor less than no heading at all.
+
+### The month is a URL, not component state
+
+`packages/ui` has a `react-day-picker` `Calendar`, and
+`apps/admin/src/components/big-calendar.tsx` scaffolds a month grid on it. Both
+are *input* components: they hold a selection in React state and change month
+with buttons. This site has nothing to select and has to be readable with
+JavaScript off (§1), so `src/components/month-calendar.tsx` is a plain `<table>`
+and the month is `?month=YYYY-MM`, moved by links:
+
+```
+$ curl -s 'localhost:3001/calendar?month=2026-12' | grep -o 'December 2026'
+December 2026
+```
+
+Which also means every month is its own cacheable URL at the edge, and a
+crawler can walk the schedule. Nothing in `src/` imports `react-day-picker` as
+a result — see the note under §3's dependency list.
+
+An unparseable month is **dropped, and the URL normalized**: `validateSearch`
+discards the bad value and the router redirects to the canonical address rather
+than rendering an error page. One catch is worth knowing — a route's search is
+merged over its parents', and `_layout` has no validator of its own, so
+returning `{}` for an invalid month leaves the raw one in place and it reaches
+the loader. `monthSearchSchema` has to return `{ month: undefined }` explicitly.
+Until it did, `?month=bogus` was a 500 out of the server function's validator,
+which is the layer that caught it:
+
+```
+$ curl -sI 'localhost:3001/calendar?month=bogus' | grep -iE '^(HTTP|location)'
+HTTP/1.1 307 Temporary Redirect
+location: /calendar
+```
+
+`apps/admin`'s scaffold is left alone, per the note above. If a month grid is
+ever wanted in both apps, promote a real one into `packages/ui` then.
+
+### Days, not instants
+
+`start_time` is an instant; a calendar is about days. The Worker runs in UTC, so
+`src/lib/calendar-month.ts` converts every instant to a *civil date* — the
+`YYYY-MM-DD` someone in `America/Denver` would write down — before deciding
+which square an event belongs on. A 6pm Mountain meet is stored as 00:00 UTC the
+next morning, and a UTC grid prints it on the wrong day.
+
+The data confirms the frame: the one event in the database is
+`2026-09-09T06:00:00Z → 2026-09-12T06:00:00Z`, which is midnight Mountain on
+both ends, because that is what the admin's date picker sent. It also fixes two
+conventions the code depends on — **the end is inclusive** (that row is a
+four-day event, not three), and a multi-day event is marked on *every* day it
+covers.
+
+`America/Denver` is a constant, not an env var: §11's `.env` has two entries and
+a third that never changes would not earn its place. Formatting goes through
+`Intl` because `date-fns` has no timezone support without `@date-fns/tz`, which
+is not a dependency. Civil-date arithmetic steps through `Date.UTC`, where a day
+is always 24 hours — `src/lib/calendar-month.test.ts` covers the DST weekend,
+the January offset, month and year rollover, and the leap day.
 
 ---
 
@@ -631,15 +727,17 @@ apps/website/
     │   ├── site-opts.ts       ✓
     │   ├── team-fns.ts        ✓ team nav, team, page nav, page, quick links
     │   ├── team-opts.ts       ✓
-    │   ├── calendar-fns.ts    M5  calendars, event types, windowed events (GET)
-    │   └── calendar-opts.ts   M5
+    │   ├── calendar-fns.ts    ✓ public set, scoped month + upcoming (GET)
+    │   ├── calendar-month.ts  ✓ civil dates, month grid, + .test.ts
+    │   ├── calendar-opts.ts   ✓
+    │   └── month-search.ts    ✓ the ?month=YYYY-MM validator
     ├── components/
-    │   ├── site-header.tsx    ✓ nav driven by the team list
+    │   ├── site-header.tsx    ✓ calendar link + nav from the team list
     │   ├── site-footer.tsx    ✓
     │   ├── rich-content.tsx   ✓ the one prose + dangerouslySetInnerHTML site
     │   ├── quick-links.tsx    ✓ + .test.tsx
-    │   ├── event-list.tsx     M5
-    │   └── month-calendar.tsx M5
+    │   ├── event-list.tsx     ✓ upcoming list + the shared event dot
+    │   └── month-calendar.tsx ✓ server-rendered table, month in the URL
     ├── integrations/
     │   └── tanstack-query/
     │       ├── root-provider.tsx  ✓ QueryClient, staleTime 5m
@@ -647,13 +745,13 @@ apps/website/
     └── routes/
         ├── __root.tsx                       ✓
         ├── _layout.tsx                      ✓ loads the team nav
-        ├── _layout/index.tsx                ✓ home content + quick links
+        ├── _layout/index.tsx                ✓ home content, quick links, events
         ├── _layout/teams/index.tsx          ✓ 301 → /
         ├── _layout/teams/$teamSlug.tsx      ✓ name, page nav, quick links
         ├── _layout/teams/$teamSlug/index.tsx    ✓ teams.home_content
         ├── _layout/teams/$teamSlug/$pageSlug.tsx ✓ team_pages.content
-        ├── _layout/calendar/index.tsx       M5
-        ├── _layout/calendar/$calendarId.tsx M5
+        ├── _layout/calendar/index.tsx       ✓ every public calendar, pooled
+        ├── _layout/calendar/$calendarId.tsx ✓ one calendar + subscribe
         ├── robots[.]txt.ts                  M6
         └── sitemap[.]xml.ts                 M6
 ```
@@ -736,8 +834,18 @@ Each one ends at something runnable.
       is verified only by being the same `eq(table.active, true)` the home
       page's quick links already prove. Re-check it the first time someone
       unpublishes something.
-- [ ] **M5 — Calendar.** `/calendar` and `/calendar/$calendarId` — month grid,
-      upcoming list, subscribe link to the calendar worker.
+- [x] **M5 — Calendar.** `/calendar` and `/calendar/$calendarId` — month grid,
+      upcoming list, subscribe link to the calendar worker, plus the upcoming
+      lists on `/` and each team page and a **Calendar** entry in the header.
+      Verified against the live database: the four-day all-day event is marked
+      on all four of its Mountain-time days, the dots resolve to
+      `text-calendar-pink` from its event type, month links walk August →
+      January 2027, `?month=bogus` 307s to `/calendar`, and both unreferenced
+      calendars 404 while the referenced one renders with the right `.ics` URL.
+      Each of the four event scopes was checked against the database directly
+      (the table in §8) — the `site` and `team` lists are empty in the app
+      today only because the one event is in the past and no team has a
+      default calendar yet.
 - [ ] **M6 — Polish.** `head`/meta per route (title, description, OG tags),
       `robots.txt`, `sitemap.xml`, cache headers from §9, Lighthouse pass,
       no-JS check, and a root `notFoundComponent` — M4 added one per team route
@@ -778,6 +886,9 @@ Resolved:
 | Where do site quick links render? | The home page, matching the admin's `scope='site'` editor — not the layout chrome | §6 |
 | Is a page slug matched loosely? | No — exactly, or 404; one canonical URL per page | §6 |
 | Do team reads take a slug or an id? | The slug, joined against `teams`, so the server fns stay independent | §6 |
+| How does the month grid change month? | `?month=YYYY-MM` and links, not component state — it has to work with JS off | §8 |
+| Which timezone are events shown in? | `America/Denver`, as a constant; instants are bucketed by civil date | §8 |
+| Is an all-day event's `end_time` inclusive? | Yes — that is what the admin stores, so the last day is shown | §8 |
 
 ---
 

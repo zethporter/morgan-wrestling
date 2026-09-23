@@ -20,6 +20,15 @@ export const SiteHeader = () => {
 					{env.VITE_APP_TITLE}
 				</Link>
 				<ul className='flex flex-wrap items-center gap-x-4 gap-y-1'>
+					<li>
+						<Link
+							to='/calendar'
+							activeProps={{ className: 'font-medium text-foreground' }}
+							className='text-muted-foreground text-sm transition-colors hover:text-foreground'
+						>
+							Calendar
+						</Link>
+					</li>
 					{teams.map((team) => (
 						<li key={team.id}>
 							<Link

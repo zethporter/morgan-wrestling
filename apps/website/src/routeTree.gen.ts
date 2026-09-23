@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
+import { Route as LayoutCalendarIndexRouteImport } from './routes/_layout/calendar/index'
+import { Route as LayoutCalendarCalendarIdRouteImport } from './routes/_layout/calendar/$calendarId'
 import { Route as LayoutTeamsIndexRouteImport } from './routes/_layout/teams/index'
 import { Route as LayoutTeamsTeamSlugRouteImport } from './routes/_layout/teams/$teamSlug'
 import { Route as LayoutTeamsTeamSlugIndexRouteImport } from './routes/_layout/teams/$teamSlug/index'
@@ -25,6 +27,17 @@ const LayoutIndexRoute = LayoutIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutCalendarIndexRoute = LayoutCalendarIndexRouteImport.update({
+  id: '/calendar/',
+  path: '/calendar/',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutCalendarCalendarIdRoute =
+  LayoutCalendarCalendarIdRouteImport.update({
+    id: '/calendar/$calendarId',
+    path: '/calendar/$calendarId',
+    getParentRoute: () => LayoutRoute,
+  } as any)
 const LayoutTeamsIndexRoute = LayoutTeamsIndexRouteImport.update({
   id: '/teams/',
   path: '/teams/',
@@ -50,13 +63,17 @@ const LayoutTeamsTeamSlugPageSlugRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
+  '/calendar/$calendarId': typeof LayoutCalendarCalendarIdRoute
   '/teams/$teamSlug': typeof LayoutTeamsTeamSlugRouteWithChildren
+  '/calendar/': typeof LayoutCalendarIndexRoute
   '/teams/': typeof LayoutTeamsIndexRoute
   '/teams/$teamSlug/$pageSlug': typeof LayoutTeamsTeamSlugPageSlugRoute
   '/teams/$teamSlug/': typeof LayoutTeamsTeamSlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof LayoutIndexRoute
+  '/calendar/$calendarId': typeof LayoutCalendarCalendarIdRoute
+  '/calendar': typeof LayoutCalendarIndexRoute
   '/teams': typeof LayoutTeamsIndexRoute
   '/teams/$teamSlug/$pageSlug': typeof LayoutTeamsTeamSlugPageSlugRoute
   '/teams/$teamSlug': typeof LayoutTeamsTeamSlugIndexRoute
@@ -65,7 +82,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
   '/_layout/': typeof LayoutIndexRoute
+  '/_layout/calendar/$calendarId': typeof LayoutCalendarCalendarIdRoute
   '/_layout/teams/$teamSlug': typeof LayoutTeamsTeamSlugRouteWithChildren
+  '/_layout/calendar/': typeof LayoutCalendarIndexRoute
   '/_layout/teams/': typeof LayoutTeamsIndexRoute
   '/_layout/teams/$teamSlug/$pageSlug': typeof LayoutTeamsTeamSlugPageSlugRoute
   '/_layout/teams/$teamSlug/': typeof LayoutTeamsTeamSlugIndexRoute
@@ -74,17 +93,27 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/calendar/$calendarId'
     | '/teams/$teamSlug'
+    | '/calendar/'
     | '/teams/'
     | '/teams/$teamSlug/$pageSlug'
     | '/teams/$teamSlug/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/teams' | '/teams/$teamSlug/$pageSlug' | '/teams/$teamSlug'
+  to:
+    | '/'
+    | '/calendar/$calendarId'
+    | '/calendar'
+    | '/teams'
+    | '/teams/$teamSlug/$pageSlug'
+    | '/teams/$teamSlug'
   id:
     | '__root__'
     | '/_layout'
     | '/_layout/'
+    | '/_layout/calendar/$calendarId'
     | '/_layout/teams/$teamSlug'
+    | '/_layout/calendar/'
     | '/_layout/teams/'
     | '/_layout/teams/$teamSlug/$pageSlug'
     | '/_layout/teams/$teamSlug/'
@@ -108,6 +137,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof LayoutIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/calendar/': {
+      id: '/_layout/calendar/'
+      path: '/calendar'
+      fullPath: '/calendar/'
+      preLoaderRoute: typeof LayoutCalendarIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/calendar/$calendarId': {
+      id: '/_layout/calendar/$calendarId'
+      path: '/calendar/$calendarId'
+      fullPath: '/calendar/$calendarId'
+      preLoaderRoute: typeof LayoutCalendarCalendarIdRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/teams/': {
@@ -156,13 +199,17 @@ const LayoutTeamsTeamSlugRouteWithChildren =
 
 interface LayoutRouteChildren {
   LayoutIndexRoute: typeof LayoutIndexRoute
+  LayoutCalendarCalendarIdRoute: typeof LayoutCalendarCalendarIdRoute
   LayoutTeamsTeamSlugRoute: typeof LayoutTeamsTeamSlugRouteWithChildren
+  LayoutCalendarIndexRoute: typeof LayoutCalendarIndexRoute
   LayoutTeamsIndexRoute: typeof LayoutTeamsIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutIndexRoute: LayoutIndexRoute,
+  LayoutCalendarCalendarIdRoute: LayoutCalendarCalendarIdRoute,
   LayoutTeamsTeamSlugRoute: LayoutTeamsTeamSlugRouteWithChildren,
+  LayoutCalendarIndexRoute: LayoutCalendarIndexRoute,
   LayoutTeamsIndexRoute: LayoutTeamsIndexRoute,
 }
 
