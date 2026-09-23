@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["**/*.ts", "**/*.tsx"],
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": ["vite/client", "bun"],
+    "paths": {
+      "#/*": ["./src/*"],
+      // @morgan-wrestling/ui is a source-only package with mixed .ts/.tsx files,
+      // so its "./*" export pattern can't do extension resolution. This mapping
+      // is what actually resolves it (Vite reads it via resolve.tsconfigPaths).
+      // db and styles need no mapping — they use explicit subpath exports.
+      "@morgan-wrestling/ui/*": ["../../packages/ui/src/*"]
+    }
+  }
+}

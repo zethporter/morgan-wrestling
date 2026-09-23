@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "morgan-wrestling-website",
+  "compatibility_date": "2026-09-18",
+  "compatibility_flags": ["nodejs_compat"],
+  // The apex is canonical and the only origin. `www` 301s to it through a
+  // Cloudflare bulk redirect rule, not a route here — a redirect does not need
+  // to boot a Worker, and a second custom domain would be a second indexable
+  // origin for identical content.
+  "routes": [{ "pattern": "morganwrestling.org", "custom_domain": true }],
+  // The *.workers.dev subdomain bypasses the edge cache and any WAF rule, and
+  // would be a second indexable origin serving identical content. The custom
+  // domain is the only way in.
+  "workers_dev": false,
+  "main": "@tanstack/react-start/server-entry",
+  "observability": { "enabled": true }
+}

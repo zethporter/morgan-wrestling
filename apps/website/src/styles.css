@@ -1,0 +1,7 @@
+@import "@morgan-wrestling/styles";
+@import "@fontsource-variable/geist";
+
+/* Authored page content arrives as Tiptap HTML and is rendered into a `prose`
+   container by `rich-content.tsx`. The admin app has no such surface, so this
+   plugin is loaded here rather than in the shared styles package. */
+@plugin "@tailwindcss/typography";

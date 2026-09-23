@@ -5,8 +5,9 @@ Cloudflare Workers that renders whatever the admin app has written into Turso �
 site home content, teams and their pages, quick links, and the calendar — and
 never writes a row back.
 
-> **Status: plan only.** Nothing in this directory is implemented yet. This file
-> is the design and the build order. Delete the "Milestones" section once the
+> **Status: scaffolded (M1 + the M2 data layer).** The app builds, typechecks,
+> serves `/`, and redirects `/teams`. Content rendering starts at M3. This file
+> is the design and the build order — delete the "Milestones" section once the
 > app ships.
 
 ---
@@ -149,32 +150,34 @@ flowchart TD
 this is a one-line grep, which is the point.
 
 **2 — A narrowed db handle.** `src/db/index.ts` deliberately does *not*
-re-export the full drizzle instance:
+re-export the full drizzle instance. It returns:
 
 ```ts
-import { createAppDb } from '@morgan-wrestling/db';
-import { env } from '#/env';
-
-export * from '@morgan-wrestling/db/schema';
-
-type AppDb = ReturnType<typeof createAppDb>;
-/** Only the reading half of the drizzle surface. `insert`/`update`/`delete`
- *  are not on this type, so a write is a compile error, not a runtime 403. */
-export type ReadonlyDb = Pick<AppDb, 'select' | 'selectDistinct' | 'with'>;
-
-/**
- * Builds a request-scoped, read-only app db. Call it inside a handler; never
- * hoist the result to module scope — a shared `@tursodatabase/serverless`
- * connection leaks its `AsyncLock` continuations across requests and hangs the
- * Worker. (Same constraint as `apps/admin/src/db/index.ts`.)
- */
-export function getDb(): ReadonlyDb {
-  return createAppDb(env.TURSO_CONNECTION_URL, env.TURSO_TOKEN);
-}
+export type ReadonlyDb = Pick<AppDb, 'select' | 'selectDistinct' | '$count'>;
 ```
 
-Confirm the exact key names against the installed `drizzle-orm@1.0.0-rc.4`
-when implementing — `Pick` on a name that does not exist is a silent no-op.
+**`with` is excluded on purpose.** In `drizzle-orm@1.0.0-rc.4` the object
+returned by `db.with(...)` carries its own `insert`, `update` and `delete`
+(`sqlite-core/async/db.d.ts:92-103`), so keeping it in the `Pick` would hand
+back the entire write path through the back door. The cost is CTEs; if a query
+ever genuinely needs one, add a wrapper that forwards only `with(...).select`
+rather than widening the type.
+
+Verified — each of these is a `TS2339` against `ReadonlyDb`, while
+`getDb().select().from(...)` compiles:
+
+| Expression | Result |
+| --- | --- |
+| `getDb().select()` | ✅ compiles |
+| `getDb().insert(t)` | ❌ `Property 'insert' does not exist` |
+| `getDb().update(t)` | ❌ `Property 'update' does not exist` |
+| `getDb().delete(t)` | ❌ `Property 'delete' does not exist` |
+| `getDb().run(sql)` | ❌ `Property 'run' does not exist` |
+| `getDb().transaction(fn)` | ❌ `Property 'transaction' does not exist` |
+| `getDb().with(...)` | ❌ `Property 'with' does not exist` |
+
+Re-run that probe after any `drizzle-orm` bump: a `Pick` on a key that no longer
+exists is a silent no-op, so a rename upstream would quietly reopen the hole.
 
 **3 — A read-only Turso token.** The Worker secret is minted with
 `turso db tokens create <db> --read-only`. Even a bug that got past layers 1–2
@@ -266,6 +269,32 @@ ProseMirror JSON the editor round-trips), and anything from the auth database.
 Select explicit column lists, as `apps/admin/src/lib/*-fns.ts` does — it keeps
 audit columns off the wire and makes the public surface obvious at the call site.
 
+### `active` is fail-closed
+
+`team_pages.active`, `quick_links.active` and `team_quick_links.active` are all
+nullable, and the admin does not filter on them today. **The website treats
+`NULL` as hidden**: every public query filters `eq(table.active, true)`, so a
+row is visible only when someone explicitly published it.
+
+This is the fail-closed reading, and the one that matters for an anonymous,
+edge-cached site — the failure mode of the alternative is a half-written page
+going live by accident, which is worse than a published page needing one extra
+click in the admin.
+
+Two consequences to expect:
+
+- Rows created before the flag was used may have `NULL` and will be invisible
+  until toggled on. That is the intended migration path, not a bug — but say so
+  when the site goes live, or it reads as missing content.
+- `quick_links.active` and `team_quick_links.active` default to `false`, so new
+  links are hidden until published. `team_pages.active` has *no* default, so a
+  page inserted without it is `NULL` and therefore hidden. Both land in the same
+  place, by different routes.
+
+If this turns out to be the wrong default in practice, the fix is a backfill
+plus `NOT NULL` on the column — a shared-schema change, so it belongs in
+`packages/db` and the admin, not in a special case here.
+
 ---
 
 ## 6. Routes
@@ -276,7 +305,7 @@ flowchart TD
     LAY["_layout.tsx<br/>site header + team nav + footer<br/>loads: teams, active quick links"]
 
     HOME["/  index.tsx<br/>settings.home_content<br/>+ quick links<br/>+ upcoming events"]
-    TEAMS["/teams  index.tsx<br/>team list"]
+    TEAMS["/teams  index.tsx<br/><b>301 → /</b><br/>no bare team index"]
     TEAM["/teams/$teamSlug<br/>team layout: page nav,<br/>team quick links"]
     TEAMHOME["/teams/$teamSlug/  index<br/>teams.home_content"]
     TEAMPAGE["/teams/$teamSlug/$pageSlug<br/>team_pages.content"]
@@ -287,6 +316,7 @@ flowchart TD
     ROOT --> LAY
     LAY --> HOME
     LAY --> TEAMS
+    TEAMS -.->|redirect| HOME
     LAY --> TEAM
     TEAM --> TEAMHOME
     TEAM --> TEAMPAGE
@@ -300,6 +330,38 @@ Plus two non-React responses:
 - `/robots.txt` — allow all, point at the sitemap.
 - `/sitemap.xml` — generated from teams + active team pages, via a route
   `server.handlers.GET` (see the "API Routes" pattern in the root `README.md`).
+
+### `/teams` has no page
+
+There is no bare team index. The site header already lists every team, so a
+visitor who lands on `/teams` — a trimmed URL, an old link, a crawler guessing —
+is sent home to pick one from the nav instead of being shown a redundant list.
+
+The redirect is thrown from `beforeLoad`, not from a component, so it resolves
+during SSR:
+
+```ts
+export const Route = createFileRoute('/_layout/teams/')({
+	beforeLoad: () => {
+		throw redirect({ to: '/', statusCode: 301 });
+	},
+});
+```
+
+A component-level redirect would ship an empty shell that bounces after
+hydration; this returns a real `301` with `location: /` on the first response,
+which is also what keeps the duplicate URL out of search indexes. Verified
+against the dev server:
+
+```
+$ curl -sI localhost:3001/teams
+HTTP/1.1 301 Moved Permanently
+location: /
+```
+
+`301` (permanent) rather than `302` because this is a standing decision, not a
+temporary state — if a real team index is ever wanted, note that browsers and
+crawlers cache a 301 aggressively and the change will be slow to propagate.
 
 ### The `$pageSlug` problem
 
@@ -392,6 +454,32 @@ Two things this needs:
 
 ## 8. Calendar display
 
+### Which calendars are public
+
+`calendars` has no `public` flag, so "every calendar" is not a safe default — an
+internal or scratch calendar created in the admin would be world-readable the
+moment it exists.
+
+**A calendar is public only if something on the site references it:** it is
+`settings.default_calendar`, or it is some team's `teams.default_calendar_id`.
+`/calendar` lists exactly that set, and `/calendar/$calendarId` 404s for
+anything outside it — otherwise the id is a guessable back door around the list.
+
+```ts
+// The public set, resolved once per request.
+const publicCalendarIds = union(
+  select settings.default_calendar where id = 'site',
+  select distinct teams.default_calendar_id where not null,
+);
+```
+
+Publishing a calendar is therefore an act of wiring it to the site in the admin,
+which is a reasonable mental model. If it ever becomes too coarse — a team wants
+two public calendars — that is the point to add `calendars.public` and switch
+the filter; the route shape does not change.
+
+### What a visitor sees
+
 The calendar pages read from the same tables `apps/calendar` does. A visitor can:
 
 - see a month grid with per-day event dots coloured by
@@ -446,54 +534,59 @@ Note the same caveat as the calendar worker: the edge cache is a no-op on
 
 ## 10. Layout
 
+`✓` exists today; the rest arrives with the milestone noted.
+
 ```
 apps/website/
-├── README.md                  ← this file
-├── package.json
-├── tsconfig.json              ← extends ../../tsconfig.base.json, "#/*" + ui path map
-├── vite.config.ts             ← devtools, cloudflare, tailwind, tanstackStart, react
-├── wrangler.jsonc             ← name: morgan-wrestling-website
-├── .env.example
-├── public/
-│   ├── favicon.ico
-│   └── ...
+├── README.md                  ✓ this file
+├── package.json               ✓
+├── tsconfig.json              ✓ extends ../../tsconfig.base.json, "#/*" + ui path map
+├── tsr.config.json            ✓
+├── vite.config.ts             ✓ devtools, cloudflare, tailwind, tanstackStart, react
+├── wrangler.jsonc             ✓ name: morgan-wrestling-website
+├── .env.example               ✓
 └── src/
-    ├── router.tsx
-    ├── styles.css             ← @import styles pkg; @plugin typography
-    ├── env.ts                 ← TURSO_CONNECTION_URL, TURSO_TOKEN, VITE_APP_TITLE
+    ├── router.tsx             ✓
+    ├── routeTree.gen.ts       ✓ generated — biome-ignored, do not edit
+    ├── styles.css             ✓ @import styles pkg; @plugin typography
+    ├── env.ts                 ✓ TURSO_CONNECTION_URL, TURSO_TOKEN, VITE_APP_TITLE
     ├── db/
-    │   └── index.ts           ← getDb(): ReadonlyDb
+    │   └── index.ts           ✓ getDb(): ReadonlyDb
     ├── lib/
-    │   ├── sanitize-html.ts
-    │   ├── slug.ts            ← shared normalize() for team + page slugs
-    │   ├── site-fns.ts        ← settings + quick links (GET)
-    │   ├── site-opts.ts
-    │   ├── team-fns.ts        ← teams, team pages, team quick links (GET)
-    │   ├── team-opts.ts
-    │   ├── calendar-fns.ts    ← calendars, event types, windowed events (GET)
-    │   └── calendar-opts.ts
+    │   ├── sanitize-html.ts   M2
+    │   ├── slug.ts            M4  shared normalize() for team + page slugs
+    │   ├── site-fns.ts        M2  settings + quick links (GET)
+    │   ├── site-opts.ts       M2
+    │   ├── team-fns.ts        M4  teams, team pages, team quick links (GET)
+    │   ├── team-opts.ts       M4
+    │   ├── calendar-fns.ts    M5  calendars, event types, windowed events (GET)
+    │   └── calendar-opts.ts   M5
     ├── components/
-    │   ├── site-header.tsx
-    │   ├── site-footer.tsx
-    │   ├── rich-content.tsx   ← the one prose + dangerouslySetInnerHTML site
-    │   ├── quick-links.tsx
-    │   ├── event-list.tsx
-    │   └── month-calendar.tsx
+    │   ├── site-header.tsx    ✓ placeholder — M3 drives the nav from the db
+    │   ├── site-footer.tsx    ✓
+    │   ├── rich-content.tsx   M3  the one prose + dangerouslySetInnerHTML site
+    │   ├── quick-links.tsx    M3
+    │   ├── event-list.tsx     M5
+    │   └── month-calendar.tsx M5
     ├── integrations/
-    │   └── tanstack-query/root-provider.tsx
+    │   └── tanstack-query/
+    │       ├── root-provider.tsx  ✓ QueryClient, staleTime 5m
+    │       └── devtools.tsx       ✓
     └── routes/
-        ├── __root.tsx
-        ├── _layout.tsx
-        ├── _layout/index.tsx
-        ├── _layout/teams/index.tsx
-        ├── _layout/teams/$teamSlug.tsx
-        ├── _layout/teams/$teamSlug/index.tsx
-        ├── _layout/teams/$teamSlug/$pageSlug.tsx
-        ├── _layout/calendar/index.tsx
-        ├── _layout/calendar/$calendarId.tsx
-        ├── robots[.]txt.ts
-        └── sitemap[.]xml.ts
+        ├── __root.tsx                       ✓
+        ├── _layout.tsx                      ✓
+        ├── _layout/index.tsx                ✓ placeholder
+        ├── _layout/teams/index.tsx          ✓ 301 → /
+        ├── _layout/teams/$teamSlug.tsx      M4
+        ├── _layout/teams/$teamSlug/index.tsx    M4
+        ├── _layout/teams/$teamSlug/$pageSlug.tsx M4
+        ├── _layout/calendar/index.tsx       M5
+        ├── _layout/calendar/$calendarId.tsx M5
+        ├── robots[.]txt.ts                  M6
+        └── sitemap[.]xml.ts                 M6
 ```
+
+There is no `public/` yet — add one at M6 with a favicon and the app icons.
 
 No `_protected` tree, no `log-in` / `sign-up` routes, no `api/auth/$` — the three
 things that make the admin's route tree look the way it does are all absent here.
@@ -504,27 +597,14 @@ things that make the admin's route tree look the way it does are all absent here
 
 ### `wrangler.jsonc`
 
-```jsonc
-{
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "morgan-wrestling-website",
-  "compatibility_date": "2026-09-18",
-  "compatibility_flags": ["nodejs_compat"],
-  "routes": [
-    { "pattern": "morganwrestling.org", "custom_domain": true },
-    { "pattern": "www.morganwrestling.org", "custom_domain": true }
-  ],
-  // The *.workers.dev subdomain bypasses the edge cache and any WAF rule, and
-  // would be a second indexable origin for the same content. The custom domain
-  // is the only way in.
-  "workers_dev": false,
-  "main": "@tanstack/react-start/server-entry",
-  "observability": { "enabled": true }
-}
-```
+Written and current: `morganwrestling.org` is the one custom domain, and
+`workers_dev` is off so the `*.workers.dev` hostname — which bypasses the edge
+cache and any WAF rule, and would be a second indexable origin — is not a way in.
 
-Decide whether `www` redirects to the apex or serves it directly; if it
-redirects, a Cloudflare bulk redirect rule is cheaper than a Worker route.
+**`www` 301s to the apex via a Cloudflare bulk redirect rule, not a Worker
+route.** A redirect should not cost a Worker invocation, and a second custom
+domain would serve identical content from a second URL. Configure the rule in
+the dashboard at M7, alongside attaching the apex domain.
 
 ### `.env.example`
 
@@ -560,17 +640,20 @@ sees them.
 
 Each one ends at something runnable.
 
-- [ ] **M1 — Scaffold.** `package.json`, `tsconfig.json`, `vite.config.ts`,
-      `wrangler.jsonc`, `src/env.ts`, `src/styles.css`, `src/router.tsx`,
-      `__root.tsx` with a hard-coded hello. `bun --bun run dev` serves it.
-- [ ] **M2 — Read-only data layer.** `src/db/index.ts` with `ReadonlyDb`,
-      `site-fns.ts` returning `settings` + active `quick_links`, sanitizer
-      helper. Verify a write is a *type* error, not a runtime one.
-- [ ] **M3 — Home page.** `_layout.tsx` (header/footer/nav) and `/` rendering
-      site home content + quick links. Real content visible end to end.
-- [ ] **M4 — Teams.** `/teams`, `/teams/$teamSlug`, `/teams/$teamSlug/$pageSlug`,
-      with the slug resolution from §6 and `active` filtering. 404s for unknown
-      or inactive slugs.
+- [x] **M1 — Scaffold.** Config, `env.ts`, `styles.css`, `router.tsx`,
+      `__root.tsx`, `_layout.tsx` and a placeholder `/`. Builds, typechecks,
+      passes Biome, serves a 200.
+- [x] **M1a — `/teams` redirect.** 301 to `/` from `beforeLoad`, verified
+      against a running server.
+- [ ] **M2 — Read-only data layer.** `src/db/index.ts` with `ReadonlyDb` ✅
+      *(done — write-rejection probe in §4 passes)*; still to do:
+      `site-fns.ts` returning `settings` + active `quick_links`, and the
+      sanitizer helper.
+- [ ] **M3 — Home page.** Drive the header nav from the team list, and render
+      site home content + quick links at `/`. Real content end to end.
+- [ ] **M4 — Teams.** `/teams/$teamSlug` and `/teams/$teamSlug/$pageSlug`, with
+      the slug resolution from §6 and `active` filtering. 404s for unknown or
+      inactive slugs.
 - [ ] **M5 — Calendar.** `/calendar` and `/calendar/$calendarId` — month grid,
       upcoming list, subscribe link to the calendar worker.
 - [ ] **M6 — Polish.** `head`/meta per route (title, description, OG tags),
@@ -584,19 +667,48 @@ Each one ends at something runnable.
 
 ## 13. Open questions
 
-1. **Apex vs. `www`** — which is canonical, and does the other redirect?
-2. **Which calendars are public?** `settings.default_calendar` and
-   `teams.default_calendar_id` point at specific ones, but `calendars` has no
-   `public` flag. Listing every calendar at `/calendar` may expose internal
-   ones. Options: only surface calendars reachable from a settings/team
-   default, or add a `calendars.public` column in the admin.
-3. **Are inactive team pages hidden or 404?** Currently assumed 404 (not listed,
-   not reachable). `team_pages.active` is nullable — decide whether `NULL`
-   means active or inactive and apply it consistently; the admin's
-   `getTeamPages` does not filter on it today.
-4. **Sanitizer choice** — needs a Workers-compatible, DOM-free library, or a
-   hand-rolled allowlist. Worth a spike in M2.
-5. **Slug column** — commit to option C from §6 now, or wait for a real
-   collision?
-6. **Do teams need an index page at all,** or should `/teams` redirect to the
-   first team? Depends on how many teams there are in practice.
+Still open:
+
+1. **Sanitizer choice** — needs a Workers-compatible, DOM-free library or a
+   hand-rolled allowlist. Spike in M2; not blocking anything before then.
+2. **Slug column** — commit to option C in §6 now, or wait for a real
+   collision? Defaulting to B (slugify at read time) until someone hits one.
+
+Resolved:
+
+| Question | Decision | Where |
+| --- | --- | --- |
+| Does `/teams` need an index page? | No — 301 to `/`, pick a team from the nav | §6 |
+| Apex or `www`? | Apex is canonical; `www` 301s via a bulk redirect rule | §11 |
+| Which calendars are public? | Only those referenced by a site or team default | §8 |
+| What does `active = NULL` mean? | Hidden — every public query requires `active = true` | §5 |
+
+---
+
+## 14. Local development
+
+```bash
+cp .env.example .env    # the two read-only Turso values
+bun run dev             # http://localhost:3001
+```
+
+**Known breakage:** `bun --bun run dev` (the command in the root `README.md`)
+currently dies before the server starts:
+
+```
+TypeError: this.#runtimeDispatcher?.close is not a function
+    at #assembleAndUpdateConfig (miniflare/dist/src/index.js)
+```
+
+This is a `miniflare@5.x-alpha` + bun-runtime incompatibility in
+`@cloudflare/vite-plugin`, **not** specific to this app — `apps/admin` fails
+identically on the same machine, so it predates the website. Running Vite under
+Node works fine in the meantime:
+
+```bash
+node ../../node_modules/.bun/vite@*/node_modules/vite/bin/vite.js dev --port 3001
+```
+
+`bun run build`, `bunx tsc --noEmit` and `bunx biome check` are all unaffected.
+Worth fixing repo-wide (pin miniflare, or drop `--bun` from the documented dev
+command) rather than per-app.
