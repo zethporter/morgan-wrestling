@@ -12,6 +12,9 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutTeamsIndexRouteImport } from './routes/_layout/teams/index'
+import { Route as LayoutTeamsTeamSlugRouteImport } from './routes/_layout/teams/$teamSlug'
+import { Route as LayoutTeamsTeamSlugIndexRouteImport } from './routes/_layout/teams/$teamSlug/index'
+import { Route as LayoutTeamsTeamSlugPageSlugRouteImport } from './routes/_layout/teams/$teamSlug/$pageSlug'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -27,27 +30,64 @@ const LayoutTeamsIndexRoute = LayoutTeamsIndexRouteImport.update({
   path: '/teams/',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutTeamsTeamSlugRoute = LayoutTeamsTeamSlugRouteImport.update({
+  id: '/teams/$teamSlug',
+  path: '/teams/$teamSlug',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutTeamsTeamSlugIndexRoute =
+  LayoutTeamsTeamSlugIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => LayoutTeamsTeamSlugRoute,
+  } as any)
+const LayoutTeamsTeamSlugPageSlugRoute =
+  LayoutTeamsTeamSlugPageSlugRouteImport.update({
+    id: '/$pageSlug',
+    path: '/$pageSlug',
+    getParentRoute: () => LayoutTeamsTeamSlugRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
+  '/teams/$teamSlug': typeof LayoutTeamsTeamSlugRouteWithChildren
   '/teams/': typeof LayoutTeamsIndexRoute
+  '/teams/$teamSlug/$pageSlug': typeof LayoutTeamsTeamSlugPageSlugRoute
+  '/teams/$teamSlug/': typeof LayoutTeamsTeamSlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof LayoutIndexRoute
   '/teams': typeof LayoutTeamsIndexRoute
+  '/teams/$teamSlug/$pageSlug': typeof LayoutTeamsTeamSlugPageSlugRoute
+  '/teams/$teamSlug': typeof LayoutTeamsTeamSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
   '/_layout/': typeof LayoutIndexRoute
+  '/_layout/teams/$teamSlug': typeof LayoutTeamsTeamSlugRouteWithChildren
   '/_layout/teams/': typeof LayoutTeamsIndexRoute
+  '/_layout/teams/$teamSlug/$pageSlug': typeof LayoutTeamsTeamSlugPageSlugRoute
+  '/_layout/teams/$teamSlug/': typeof LayoutTeamsTeamSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/teams/'
+  fullPaths:
+    | '/'
+    | '/teams/$teamSlug'
+    | '/teams/'
+    | '/teams/$teamSlug/$pageSlug'
+    | '/teams/$teamSlug/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/teams'
-  id: '__root__' | '/_layout' | '/_layout/' | '/_layout/teams/'
+  to: '/' | '/teams' | '/teams/$teamSlug/$pageSlug' | '/teams/$teamSlug'
+  id:
+    | '__root__'
+    | '/_layout'
+    | '/_layout/'
+    | '/_layout/teams/$teamSlug'
+    | '/_layout/teams/'
+    | '/_layout/teams/$teamSlug/$pageSlug'
+    | '/_layout/teams/$teamSlug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -77,16 +117,52 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutTeamsIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/teams/$teamSlug': {
+      id: '/_layout/teams/$teamSlug'
+      path: '/teams/$teamSlug'
+      fullPath: '/teams/$teamSlug'
+      preLoaderRoute: typeof LayoutTeamsTeamSlugRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/teams/$teamSlug/': {
+      id: '/_layout/teams/$teamSlug/'
+      path: '/'
+      fullPath: '/teams/$teamSlug/'
+      preLoaderRoute: typeof LayoutTeamsTeamSlugIndexRouteImport
+      parentRoute: typeof LayoutTeamsTeamSlugRoute
+    }
+    '/_layout/teams/$teamSlug/$pageSlug': {
+      id: '/_layout/teams/$teamSlug/$pageSlug'
+      path: '/$pageSlug'
+      fullPath: '/teams/$teamSlug/$pageSlug'
+      preLoaderRoute: typeof LayoutTeamsTeamSlugPageSlugRouteImport
+      parentRoute: typeof LayoutTeamsTeamSlugRoute
+    }
   }
 }
 
+interface LayoutTeamsTeamSlugRouteChildren {
+  LayoutTeamsTeamSlugPageSlugRoute: typeof LayoutTeamsTeamSlugPageSlugRoute
+  LayoutTeamsTeamSlugIndexRoute: typeof LayoutTeamsTeamSlugIndexRoute
+}
+
+const LayoutTeamsTeamSlugRouteChildren: LayoutTeamsTeamSlugRouteChildren = {
+  LayoutTeamsTeamSlugPageSlugRoute: LayoutTeamsTeamSlugPageSlugRoute,
+  LayoutTeamsTeamSlugIndexRoute: LayoutTeamsTeamSlugIndexRoute,
+}
+
+const LayoutTeamsTeamSlugRouteWithChildren =
+  LayoutTeamsTeamSlugRoute._addFileChildren(LayoutTeamsTeamSlugRouteChildren)
+
 interface LayoutRouteChildren {
   LayoutIndexRoute: typeof LayoutIndexRoute
+  LayoutTeamsTeamSlugRoute: typeof LayoutTeamsTeamSlugRouteWithChildren
   LayoutTeamsIndexRoute: typeof LayoutTeamsIndexRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutIndexRoute: LayoutIndexRoute,
+  LayoutTeamsTeamSlugRoute: LayoutTeamsTeamSlugRouteWithChildren,
   LayoutTeamsIndexRoute: LayoutTeamsIndexRoute,
 }
 

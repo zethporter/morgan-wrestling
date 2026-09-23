@@ -5,11 +5,11 @@ Cloudflare Workers that renders whatever the admin app has written into Turso �
 site home content, teams and their pages, quick links, and the calendar — and
 never writes a row back.
 
-> **Status: the home page is live (M1–M3).** The app builds, typechecks, tests,
-> and serves `/` with the real site content, the real quick links, and a header
-> nav driven by the team list. Teams, calendar, polish and deploy are still
-> ahead. This file is the design and the build order — delete the "Milestones"
-> section once the app ships.
+> **Status: the home page and the team pages are live (M1–M4).** The app
+> builds, typechecks, tests, and serves `/` plus `/teams/$teamSlug` and
+> `/teams/$teamSlug/$pageSlug` from the real database. Calendar, polish and
+> deploy are still ahead. This file is the design and the build order — delete
+> the "Milestones" section once the app ships.
 
 ---
 
@@ -383,15 +383,45 @@ are not unique per team. Three options:
 | **B.** Slugify the title at read time | `/teams/varsity/schedule` | Pretty. Ambiguous if two pages in a team normalize to the same slug. |
 | **C.** Add `team_pages.slug` (unique per team) | `/teams/varsity/schedule` | Correct. Needs a migration + an admin field. |
 
-**Recommendation: B now, C later.** Slugify with the same
+**Decided: B now, C later.** `src/lib/slug.ts` is the same
 `name.toLowerCase().replace(/\s+/g, '-')` rule `apps/admin/src/lib/team-fns.ts`
-uses for teams, resolve server-side by comparing normalized titles, and on a
-collision take the lowest `sequence_number` (matching the nav order the visitor
-clicked). Ship C as a follow-up in the admin app when someone actually hits a
-collision; the route shape does not change when it lands.
+uses for teams (plus a trim, which only affects derived page slugs).
+`getTeamPage` resolves server-side by comparing normalized titles and, on a
+collision, takes the lowest `sequence_number` — the entry the visitor clicked.
+Ship C as a follow-up in the admin app when someone actually hits a collision;
+the route shape does not change when it lands.
 
 Teams themselves already have `normalized_name`, so `$teamSlug` needs no such
 gymnastics.
+
+**A slug matches exactly or it 404s.** The incoming `$pageSlug` is compared as
+it arrived rather than re-slugged, so `/teams/varsity/SCHEDULE` is a 404 and not
+a second URL serving identical content — which is the rule `$teamSlug` already
+gets for free from the database column. Verified:
+
+```
+$ curl -so /dev/null -w '%{http_code}\n' localhost:3001/teams/varsity-boys/first-page
+200
+$ curl -so /dev/null -w '%{http_code}\n' localhost:3001/teams/varsity-boys/First-Page
+404
+```
+
+If hand-typed mixed case ever turns out to matter, the answer is a 301 to the
+canonical form, not a lenient match.
+
+### One query per team page
+
+`getTeamPage` selects every published page of the team — `content` included —
+and picks the match in the Worker. There is no slug column to filter on in SQL,
+so the rows have to be scanned somewhere, and a team has a handful of pages: a
+few discarded kilobytes inside the Worker beats a second serial round trip to
+Turso on the critical path of every sub-page view. If a team ever grows enough
+pages for that to stop being true, the fix is option C, not a second query.
+
+Every team-scoped read is keyed by the slug in the URL and joins `teams`, rather
+than taking a team id resolved earlier in the route tree. That keeps the server
+functions independent of each other — the team layout fires all three of its
+queries in parallel — at the cost of a join against a table with two rows in it.
 
 ### Request flow
 
@@ -596,10 +626,10 @@ apps/website/
     ├── lib/
     │   ├── sanitize-html.ts   ✓ + .test.ts
     │   ├── quick-links.ts     ✓ QuickLink type + toQuickLinkHref, + .test.ts
-    │   ├── slug.ts            M4  shared normalize() for team + page slugs
+    │   ├── slug.ts            ✓ toSlug(), for derived page slugs, + .test.ts
     │   ├── site-fns.ts        ✓ settings + active quick links (GET)
     │   ├── site-opts.ts       ✓
-    │   ├── team-fns.ts        ✓ nav list; M4 adds pages + team quick links
+    │   ├── team-fns.ts        ✓ team nav, team, page nav, page, quick links
     │   ├── team-opts.ts       ✓
     │   ├── calendar-fns.ts    M5  calendars, event types, windowed events (GET)
     │   └── calendar-opts.ts   M5
@@ -619,9 +649,9 @@ apps/website/
         ├── _layout.tsx                      ✓ loads the team nav
         ├── _layout/index.tsx                ✓ home content + quick links
         ├── _layout/teams/index.tsx          ✓ 301 → /
-        ├── _layout/teams/$teamSlug.tsx      M4
-        ├── _layout/teams/$teamSlug/index.tsx    M4
-        ├── _layout/teams/$teamSlug/$pageSlug.tsx M4
+        ├── _layout/teams/$teamSlug.tsx      ✓ name, page nav, quick links
+        ├── _layout/teams/$teamSlug/index.tsx    ✓ teams.home_content
+        ├── _layout/teams/$teamSlug/$pageSlug.tsx ✓ team_pages.content
         ├── _layout/calendar/index.tsx       M5
         ├── _layout/calendar/$calendarId.tsx M5
         ├── robots[.]txt.ts                  M6
@@ -694,18 +724,25 @@ Each one ends at something runnable.
       and quick links rendered at `/`. Verified against the live database: the
       nav lists the real teams, `settings.home_content` renders through
       `prose`, and the quick link resolves to its external destination.
-- [ ] **M4 — Teams.** `/teams/$teamSlug` and `/teams/$teamSlug/$pageSlug`, with
-      the slug resolution from §6 and `active` filtering. 404s for unknown or
-      inactive slugs.
-      **Also swap the header's team `<a href>` back to a typed `Link`** —
-      `site-header.tsx` uses a plain anchor only because `Link` is typed
-      against the route tree and `/teams/$teamSlug` does not exist yet, so
-      those nav entries 404 until this milestone lands.
+- [x] **M4 — Teams.** `/teams/$teamSlug` and `/teams/$teamSlug/$pageSlug`, with
+      the slug resolution from §6 and `active` filtering; the header's team
+      entries are typed `Link`s again. Verified against the live database: both
+      teams render their home content, `First  Page` resolves at
+      `/teams/varsity-boys/first-page` (the double space collapsing to one
+      dash), the team quick link renders, an unknown team is a 404 and an
+      unknown page is a 404 that keeps the team's heading and nav.
+      **`active = false` is not exercised by the data** — every `team_pages` and
+      `team_quick_links` row in the database today is published, so the filter
+      is verified only by being the same `eq(table.active, true)` the home
+      page's quick links already prove. Re-check it the first time someone
+      unpublishes something.
 - [ ] **M5 — Calendar.** `/calendar` and `/calendar/$calendarId` — month grid,
       upcoming list, subscribe link to the calendar worker.
 - [ ] **M6 — Polish.** `head`/meta per route (title, description, OG tags),
-      `robots.txt`, `sitemap.xml`, 404 page, cache headers from §9, Lighthouse
-      pass, no-JS check.
+      `robots.txt`, `sitemap.xml`, cache headers from §9, Lighthouse pass,
+      no-JS check, and a root `notFoundComponent` — M4 added one per team route
+      so a bad slug lands somewhere sensible, but a bare unknown path still
+      gets the router's default.
 - [ ] **M7 — Deploy.** Read-only Turso token minted, Worker secrets pushed,
       `deploy.yml` filter + dispatch choice added, custom domain attached,
       `BEFORE_DEPLOY.md` updated with the website's (much shorter) setup.
@@ -716,8 +753,11 @@ Each one ends at something runnable.
 
 Still open:
 
-1. **Slug column** — commit to option C in §6 now, or wait for a real
-   collision? Defaulting to B (slugify at read time) until someone hits one.
+1. **Slug column** — B (slugify at read time) shipped at M4. Option C, a real
+   `team_pages.slug`, is still the correct end state; it needs a migration and
+   an admin field, so it waits for someone to hit an actual collision. Until
+   then two pages whose titles slug alike show two nav entries pointing at one
+   URL.
 2. **Quick-link URLs have no scheme in the database.** `quick_links.url` is
    free text in the admin and the row that exists today is
    `trackwrestling.com`, which a browser reads as a *relative* path.
@@ -736,6 +776,8 @@ Resolved:
 | What does `active = NULL` mean? | Hidden — every public query requires `active = true` | §5 |
 | Which sanitizer? | `ultrahtml`'s parser, our own allowlist walk — its sanitize transformer leaks `onclick`, `javascript:` and attribute breakouts | §7 |
 | Where do site quick links render? | The home page, matching the admin's `scope='site'` editor — not the layout chrome | §6 |
+| Is a page slug matched loosely? | No — exactly, or 404; one canonical URL per page | §6 |
+| Do team reads take a slug or an id? | The slug, joined against `teams`, so the server fns stay independent | §6 |
 
 ---
 

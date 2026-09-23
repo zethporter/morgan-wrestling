@@ -22,16 +22,14 @@ export const SiteHeader = () => {
 				<ul className='flex flex-wrap items-center gap-x-4 gap-y-1'>
 					{teams.map((team) => (
 						<li key={team.id}>
-							{/* A plain anchor until M4: `/teams/$teamSlug` does not exist
-							    yet, and `Link` is typed against the route tree, so this
-							    cannot become a `Link` before the route it points at is
-							    real. Swap it when M4 lands. */}
-							<a
-								href={`/teams/${team.slug}`}
+							<Link
+								to='/teams/$teamSlug'
+								params={{ teamSlug: team.slug }}
+								activeProps={{ className: 'font-medium text-foreground' }}
 								className='text-muted-foreground text-sm transition-colors hover:text-foreground'
 							>
 								{team.name}
-							</a>
+							</Link>
 						</li>
 					))}
 				</ul>
