@@ -778,7 +778,7 @@ Written and current: `morganwrestling.org` is the one custom domain, and
 `workers_dev` is off so the `*.workers.dev` hostname — which bypasses the edge
 cache and any WAF rule, and would be a second indexable origin — is not a way in.
 
-**`www` 301s to the apex via a Cloudflare bulk redirect rule, not a Worker
+**`www` 301s to the apex via a Cloudflare Single Redirect rule, not a Worker
 route.** A redirect should not cost a Worker invocation, and a second custom
 domain would serve identical content from a second URL. Configure the rule in
 the dashboard alongside attaching the apex domain — the steps are in
@@ -869,7 +869,7 @@ Each one ends at something runnable.
       the website's (much shorter) setup. What is left is account work, in this
       order — mint the read-only Turso token, push the two Worker secrets with
       `wrangler secret bulk`, merge to `master`, attach `morganwrestling.org`
-      as the custom domain, add the `www` → apex bulk redirect rule, then
+      as the custom domain, add the `www` → apex redirect rule, then
       verify the cache headers against the apex (they are a no-op anywhere
       else).
 
@@ -897,7 +897,7 @@ Resolved:
 | Question | Decision | Where |
 | --- | --- | --- |
 | Does `/teams` need an index page? | No — 301 to `/`, pick a team from the nav | §6 |
-| Apex or `www`? | Apex is canonical; `www` 301s via a bulk redirect rule | §11 |
+| Apex or `www`? | Apex is canonical; `www` 301s via a Single Redirect rule | §11 |
 | Which calendars are public? | Only those referenced by a site or team default | §8 |
 | What does `active = NULL` mean? | Hidden — every public query requires `active = true` | §5 |
 | Which sanitizer? | `ultrahtml`'s parser, our own allowlist walk — its sanitize transformer leaks `onclick`, `javascript:` and attribute breakouts | §7 |

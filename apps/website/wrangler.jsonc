@@ -4,7 +4,7 @@
   "compatibility_date": "2026-09-18",
   "compatibility_flags": ["nodejs_compat"],
   // The apex is canonical and the only origin. `www` 301s to it through a
-  // Cloudflare bulk redirect rule, not a route here — a redirect does not need
+  // Cloudflare Single Redirect rule, not a route here — a redirect does not need
   // to boot a Worker, and a second custom domain would be a second indexable
   // origin for identical content.
   "routes": [{ "pattern": "morganwrestling.org", "custom_domain": true }],

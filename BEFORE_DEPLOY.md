@@ -125,11 +125,28 @@ Cloudflare account and the API token to carry **Workers Routes: Edit** (step 1).
 With `workers_dev` off there is no fallback hostname: if the domain is not
 attached, the Worker deploys and is unreachable.
 
-`www` is *not* a second route. Add a **bulk redirect rule** in the dashboard —
-Rules → Redirect Rules — from `www.morganwrestling.org/*` to
-`https://morganwrestling.org/$1`, status **301**, preserving path and query. A
-second custom domain would boot a Worker for every redirect and serve identical
-content from a second indexable origin.
+`www` is *not* a second route — a second custom domain would boot a Worker for
+every redirect and serve identical content from a second indexable origin.
+Instead, two dashboard steps that have to be done together:
+
+1. **DNS → Records:** `www` as an **AAAA** to `100::`, **proxied** (orange
+   cloud). `100::` is the IPv6 discard prefix, so nothing is behind it — the
+   record exists only so the request reaches Cloudflare's edge. Deleting the
+   `www` record instead is the tempting mistake: with no record the lookup is
+   NXDOMAIN and no rule can run, because nothing ever gets to Cloudflare. A
+   grey cloud fails the same way, one hop later.
+2. **Rules → Redirect Rules → Single Redirect**, named `www to apex`. Match
+   `http.host eq "www.morganwrestling.org"`; redirect **Dynamic** to
+   `concat("https://morganwrestling.org", http.request.uri.path)`, status
+   **301**, preserve query string.
+
+Single Redirects, not Bulk Redirects — the latter are list-based and built for
+migrating many URLs at once, which is a List object and a rule to manage for
+one hostname. Dynamic rather than Static so the path survives; Static sends
+every URL to the homepage.
+
+Verify with `curl -sI https://www.morganwrestling.org/teams/<slug>`, which
+should answer `301` with an apex `location`.
 
 The edge cache (`s-maxage`, §9 of the app README) is a no-op until the custom
 domain is live, so verify cache headers against the apex and not a preview URL.
