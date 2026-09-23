@@ -25,9 +25,10 @@ Settings → Secrets and variables → Actions.
 
 Secrets:
 
-- `CLOUDFLARE_API_TOKEN` — scoped to **Workers Scripts: Edit** and
-  **Account Settings: Read**. Add **Workers Routes: Edit** too if you attach a
-  custom domain later.
+- `CLOUDFLARE_API_TOKEN` — scoped to **Workers Scripts: Edit**,
+  **Account Settings: Read**, and **Workers Routes: Edit**. The last one is
+  required, not optional: `apps/website` declares a custom domain in its
+  `wrangler.jsonc` (step 4), and a token without it fails the deploy.
 - `CLOUDFLARE_ACCOUNT_ID`
 
 Variables (not secrets):
@@ -84,7 +85,56 @@ client:
 If you later move the app to a custom domain, both of these have to change
 together.
 
-## 4. Merge to `master`
+## 4. The website Worker
+
+`apps/website` is read-only and has no auth, so its setup is steps 2 and 3 in
+miniature: **two secrets, no OAuth, no callback URL**. Everything in this
+section is per-Worker and done once, from your machine.
+
+Mint a Turso token that cannot write. This is the layer that actually enforces
+the app's read-only promise (`apps/website/README.md` §4) — a read/write token
+here quietly removes it:
+
+```bash
+turso db tokens create <content-db> --read-only
+```
+
+Then `apps/website/.env.production` (gitignored) with just the two server keys
+from `apps/website/.env.example`, and the same bulk upload as step 2:
+
+```
+TURSO_CONNECTION_URL
+TURSO_TOKEN
+```
+
+```bash
+cd apps/website
+grep -v '^#' .env.production | grep -v '^VITE_' | grep '=' \
+  | jq -Rn '[inputs | split("=") | {(.[0]): (.[1:]|join("="))}] | add' \
+  | bunx wrangler secret bulk
+```
+
+`VITE_APP_TITLE` is already a repo variable from step 1 and is shared by every
+app; there is nothing website-specific to add there.
+
+### Custom domain and `www`
+
+`apps/website/wrangler.jsonc` declares `morganwrestling.org` as a custom domain
+and sets `workers_dev: false`, so the first deploy needs the zone in the same
+Cloudflare account and the API token to carry **Workers Routes: Edit** (step 1).
+With `workers_dev` off there is no fallback hostname: if the domain is not
+attached, the Worker deploys and is unreachable.
+
+`www` is *not* a second route. Add a **bulk redirect rule** in the dashboard —
+Rules → Redirect Rules — from `www.morganwrestling.org/*` to
+`https://morganwrestling.org/$1`, status **301**, preserving path and query. A
+second custom domain would boot a Worker for every redirect and serve identical
+content from a second indexable origin.
+
+The edge cache (`s-maxage`, §9 of the app README) is a no-op until the custom
+domain is live, so verify cache headers against the apex and not a preview URL.
+
+## 5. Merge to `master`
 
 The workflow only triggers on pushes to `master`. Pushing a feature branch does
 nothing — and neither trigger is reachable from one, because GitHub only shows
@@ -104,8 +154,10 @@ for manual redeploys.
 
 ## Adding the next app
 
-Worker secrets are per-Worker, so each new app repeats steps 2 and 3 with its
-own values. In code, two edits to `.github/workflows/deploy.yml`:
+Worker secrets are per-Worker, so each new app repeats step 2 with its own
+values — plus whatever else its `.env.example` implies (step 3 for the admin's
+OAuth, step 4 for the website's read-only token and custom domain). In code,
+two edits to `.github/workflows/deploy.yml`:
 
 1. Add a key under `filters` alongside `admin`, referencing the `*shared`
    anchor plus its own `apps/<name>/**`

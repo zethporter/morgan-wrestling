@@ -5,10 +5,12 @@ Cloudflare Workers that renders whatever the admin app has written into Turso �
 site home content, teams and their pages, quick links, and the calendar — and
 never writes a row back.
 
-> **Status: every page is live (M1–M5).** The app builds, typechecks, tests,
-> and serves the home page, the team pages and the calendar from the real
-> database. What is left is polish (meta tags, `robots.txt`, `sitemap.xml`,
-> cache headers) and deploying it. This file is the design and the build order —
+> **Status: feature-complete and polished (M1–M6).** The app builds,
+> typechecks, tests, and serves the home page, the team pages and the calendar
+> from the real database, with per-route meta, `robots.txt`, `sitemap.xml` and
+> edge cache headers. What is left is M7 — the deploy itself, which is mostly
+> Cloudflare and Turso account work rather than code; the checklist lives in the
+> root `BEFORE_DEPLOY.md` §4. This file is the design and the build order —
 > delete the "Milestones" section once the app ships.
 
 ---
@@ -110,10 +112,8 @@ everything auth- and mutation-shaped.
     "@tanstack/react-router": "*",
     "@tanstack/react-router-ssr-query": "*",
     "@tanstack/react-start": "*",
-    "date-fns": "*",
     "lucide-react": "*",
     "react": "*",
-    "react-day-picker": "*",
     "react-dom": "*",
     "ultrahtml": "*",
     "zod": "*"
@@ -124,11 +124,12 @@ everything auth- and mutation-shaped.
 Match the versions already pinned in `apps/admin/package.json` — one resolved
 copy of React/Router/Query across the workspace is the point.
 
-Two of those turned out not to be needed once the calendar landed:
-`react-day-picker` (the month grid is a server-rendered table — §8) and
+Two more were planned for and turned out not to be needed once the calendar
+landed: `react-day-picker` (the month grid is a server-rendered table — §8) and
 `date-fns` (no timezone support without `@date-fns/tz`, so the date handling
-goes through `Intl`). Neither is imported anywhere in `src/`; drop them from
-this app on the next lockfile change.
+goes through `Intl`). Neither was imported anywhere in `src/`, so both were
+dropped from this app before the first deploy. The other apps still depend on
+them, so the lockfile keeps them.
 
 Deliberately **absent**: `@morgan-wrestling/auth`, `@tanstack/react-form`,
 `@tanstack/react-form-start`, `nanoid`, `jotai`. If a future change wants any of
@@ -712,6 +713,8 @@ apps/website/
 ├── vitest.config.ts           ✓ jsdom, no cloudflare/start plugins
 ├── wrangler.jsonc             ✓ name: morgan-wrestling-website
 ├── .env.example               ✓
+├── public/                    ✓ favicon.ico/.svg, apple-touch-icon,
+│                                icon-192/512, site.webmanifest
 └── src/
     ├── router.tsx             ✓
     ├── routeTree.gen.ts       ✓ generated — biome-ignored, do not edit
@@ -730,7 +733,13 @@ apps/website/
     │   ├── calendar-fns.ts    ✓ public set, scoped month + upcoming (GET)
     │   ├── calendar-month.ts  ✓ civil dates, month grid, + .test.ts
     │   ├── calendar-opts.ts   ✓
-    │   └── month-search.ts    ✓ the ?month=YYYY-MM validator
+    │   ├── month-search.ts    ✓ the ?month=YYYY-MM validator
+    │   ├── paths.ts           ✓ every site URL, for canonical + sitemap
+    │   ├── seo.ts             ✓ SITE_ORIGIN, absoluteUrl, head tags, + .test.ts
+    │   ├── excerpt.ts         ✓ meta description from authored HTML, + .test.ts
+    │   ├── sitemap.ts         ✓ the XML body, + .test.ts
+    │   ├── sitemap-fns.ts     ✓ sitemap paths + robots.txt body (GET)
+    │   └── cache-control.ts   ✓ the s-maxage / SWR headers from §9
     ├── components/
     │   ├── site-header.tsx    ✓ calendar link + nav from the team list
     │   ├── site-footer.tsx    ✓
@@ -752,11 +761,9 @@ apps/website/
         ├── _layout/teams/$teamSlug/$pageSlug.tsx ✓ team_pages.content
         ├── _layout/calendar/index.tsx       ✓ every public calendar, pooled
         ├── _layout/calendar/$calendarId.tsx ✓ one calendar + subscribe
-        ├── robots[.]txt.ts                  M6
-        └── sitemap[.]xml.ts                 M6
+        ├── robots[.]txt.ts                  ✓ allow all, points at the sitemap
+        └── sitemap[.]xml.ts                 ✓ teams, pages, public calendars
 ```
-
-There is no `public/` yet — add one at M6 with a favicon and the app icons.
 
 No `_protected` tree, no `log-in` / `sign-up` routes, no `api/auth/$` — the three
 things that make the admin's route tree look the way it does are all absent here.
@@ -774,7 +781,8 @@ cache and any WAF rule, and would be a second indexable origin — is not a way 
 **`www` 301s to the apex via a Cloudflare bulk redirect rule, not a Worker
 route.** A redirect should not cost a Worker invocation, and a second custom
 domain would serve identical content from a second URL. Configure the rule in
-the dashboard at M7, alongside attaching the apex domain.
+the dashboard alongside attaching the apex domain — the steps are in
+`BEFORE_DEPLOY.md` §4.
 
 ### `.env.example`
 
@@ -792,7 +800,8 @@ the scope of this app.
 
 ### `.github/workflows/deploy.yml`
 
-Two edits, per the "Adding the next app" section of `BEFORE_DEPLOY.md`:
+Landed — the two edits from the "Adding the next app" section of
+`BEFORE_DEPLOY.md`:
 
 ```yaml
             website:
@@ -846,14 +855,23 @@ Each one ends at something runnable.
       (the table in §8) — the `site` and `team` lists are empty in the app
       today only because the one event is in the past and no team has a
       default calendar yet.
-- [ ] **M6 — Polish.** `head`/meta per route (title, description, OG tags),
-      `robots.txt`, `sitemap.xml`, cache headers from §9, Lighthouse pass,
-      no-JS check, and a root `notFoundComponent` — M4 added one per team route
-      so a bad slug lands somewhere sensible, but a bare unknown path still
-      gets the router's default.
-- [ ] **M7 — Deploy.** Read-only Turso token minted, Worker secrets pushed,
-      `deploy.yml` filter + dispatch choice added, custom domain attached,
-      `BEFORE_DEPLOY.md` updated with the website's (much shorter) setup.
+- [x] **M6 — Polish.** Per-route `head` (title, description, canonical, OG and
+      Twitter tags) built in `src/lib/seo.ts`, with descriptions derived from
+      the authored HTML by `src/lib/excerpt.ts`; `robots.txt` and `sitemap.xml`
+      as route handlers; the §9 cache headers applied in `__root.tsx` and the
+      two crawler files; `public/` with the favicon, app icons and web
+      manifest; and a root `notFoundComponent`, so a bare unknown path lands on
+      the site's own 404 (with a shorter `s-maxage`) instead of the router's
+      default. The per-team and per-page `notFoundComponent`s from M4 still win
+      inside their routes.
+- [ ] **M7 — Deploy.** Code side is done: `deploy.yml` has the `website` path
+      filter and the `workflow_dispatch` choice, and `BEFORE_DEPLOY.md` §4 is
+      the website's (much shorter) setup. What is left is account work, in this
+      order — mint the read-only Turso token, push the two Worker secrets with
+      `wrangler secret bulk`, merge to `master`, attach `morganwrestling.org`
+      as the custom domain, add the `www` → apex bulk redirect rule, then
+      verify the cache headers against the apex (they are a no-op anywhere
+      else).
 
 ---
 
