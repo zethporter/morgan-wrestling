@@ -36,6 +36,7 @@ import {
 import { useMemo, useState } from 'react';
 import { NewTeamDialog } from '#/components/new-team';
 import { QuickLinksDialog } from '#/components/quick-links-dialog';
+import { TeamPageDialog } from '#/components/team-page-dialog';
 import { TeamSidebar } from '#/components/team-sidebar';
 import { deleteTeam } from '#/lib/team-fns';
 import {
@@ -99,6 +100,7 @@ function RouteComponent() {
 	const hasTeam = params.teamId !== NO_TEAMS;
 
 	const [editQuickLinks, setEditQuickLinks] = useState(false);
+	const [addPage, setAddPage] = useState(false);
 
 	return (
 		<div className='flex h-full min-h-0 w-full flex-col gap-5 p-5'>
@@ -160,6 +162,7 @@ function RouteComponent() {
 						<TeamSidebar
 							teamId={params.teamId}
 							pages={pages ?? []}
+							onAddPage={() => setAddPage(true)}
 							onEditQuickLinks={() => setEditQuickLinks(true)}
 						/>
 						<SidebarInset>
@@ -171,6 +174,17 @@ function RouteComponent() {
 						onOpenChange={setEditQuickLinks}
 						scope='team'
 						teamId={params.teamId}
+					/>
+					<TeamPageDialog
+						open={addPage}
+						onOpenChange={setAddPage}
+						teamId={params.teamId}
+						onCreated={(pageId) =>
+							router({
+								to: '/teams/$teamId/pages/$pageId',
+								params: { teamId: params.teamId, pageId: String(pageId) },
+							})
+						}
 					/>
 				</>
 			) : (

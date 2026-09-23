@@ -12,11 +12,18 @@ import {
 	SidebarSeparator,
 } from '@morgan-wrestling/ui/components/ui/sidebar';
 import { Link } from '@tanstack/react-router';
-import { FileTextIcon, HomeIcon, LinkIcon, PlusIcon } from 'lucide-react';
+import {
+	EyeOffIcon,
+	FileTextIcon,
+	HomeIcon,
+	LinkIcon,
+	PlusIcon,
+} from 'lucide-react';
 
 type TeamPage = {
 	id: number;
 	title: string;
+	active?: boolean | null;
 };
 
 type TeamSidebarProps = {
@@ -74,6 +81,12 @@ export function TeamSidebar({
 										>
 											<FileTextIcon />
 											<span>{page.title}</span>
+											{!page.active && (
+												<EyeOffIcon
+													className='ml-auto text-muted-foreground'
+													aria-label='Hidden'
+												/>
+											)}
 										</Link>
 									}
 								/>
