@@ -3,6 +3,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { RssIcon } from 'lucide-react';
 import { EventDot, EventList } from '#/components/event-list';
 import { MonthCalendar } from '#/components/month-calendar';
+import { env } from '#/env';
 import type { EventScope } from '#/lib/calendar-fns';
 import { civilToday, monthOf } from '#/lib/calendar-month';
 import {
@@ -11,6 +12,8 @@ import {
 	upcomingEventsQueryOptions,
 } from '#/lib/calendar-opts';
 import { monthSearchSchema } from '#/lib/month-search';
+import { CALENDAR_PATH, monthPath } from '#/lib/paths';
+import { seo } from '#/lib/seo';
 
 /** Everything public, pooled — the index is the whole-program schedule. */
 const SCOPE: EventScope = { scope: 'public' };
@@ -30,7 +33,17 @@ export const Route = createFileRoute('/_layout/calendar/')({
 			),
 			context.queryClient.ensureQueryData(upcomingEventsQueryOptions(SCOPE)),
 		]);
+
+		// `deps.month`, not the resolved `month`: the canonical address of the
+		// current month is `/calendar` with no param at all.
+		return { path: monthPath(CALENDAR_PATH, deps.month) };
 	},
+	head: ({ loaderData }) =>
+		seo({
+			title: 'Calendar',
+			description: `Every published schedule for ${env.VITE_APP_TITLE}, month by month.`,
+			path: loaderData?.path ?? CALENDAR_PATH,
+		}),
 	component: CalendarIndex,
 });
 

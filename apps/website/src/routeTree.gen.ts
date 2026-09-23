@@ -10,6 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as LayoutRouteImport } from './routes/_layout'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutCalendarIndexRouteImport } from './routes/_layout/calendar/index'
 import { Route as LayoutCalendarCalendarIdRouteImport } from './routes/_layout/calendar/$calendarId'
@@ -20,6 +22,16 @@ import { Route as LayoutTeamsTeamSlugPageSlugRouteImport } from './routes/_layou
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LayoutIndexRoute = LayoutIndexRouteImport.update({
@@ -63,6 +75,8 @@ const LayoutTeamsTeamSlugPageSlugRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof LayoutIndexRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/calendar/$calendarId': typeof LayoutCalendarCalendarIdRoute
   '/teams/$teamSlug': typeof LayoutTeamsTeamSlugRouteWithChildren
   '/calendar/': typeof LayoutCalendarIndexRoute
@@ -71,6 +85,8 @@ export interface FileRoutesByFullPath {
   '/teams/$teamSlug/': typeof LayoutTeamsTeamSlugIndexRoute
 }
 export interface FileRoutesByTo {
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/': typeof LayoutIndexRoute
   '/calendar/$calendarId': typeof LayoutCalendarCalendarIdRoute
   '/calendar': typeof LayoutCalendarIndexRoute
@@ -81,6 +97,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_layout': typeof LayoutRouteWithChildren
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/calendar/$calendarId': typeof LayoutCalendarCalendarIdRoute
   '/_layout/teams/$teamSlug': typeof LayoutTeamsTeamSlugRouteWithChildren
@@ -93,6 +111,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/calendar/$calendarId'
     | '/teams/$teamSlug'
     | '/calendar/'
@@ -101,6 +121,8 @@ export interface FileRouteTypes {
     | '/teams/$teamSlug/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/'
     | '/calendar/$calendarId'
     | '/calendar'
@@ -110,6 +132,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/_layout'
+    | '/robots.txt'
+    | '/sitemap.xml'
     | '/_layout/'
     | '/_layout/calendar/$calendarId'
     | '/_layout/teams/$teamSlug'
@@ -121,6 +145,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   LayoutRoute: typeof LayoutRouteWithChildren
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -130,6 +156,20 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof LayoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_layout/': {
@@ -218,6 +258,8 @@ const LayoutRouteWithChildren =
 
 const rootRouteChildren: RootRouteChildren = {
   LayoutRoute: LayoutRouteWithChildren,
+  RobotsDottxtRoute: RobotsDottxtRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -2,6 +2,7 @@
   "name": "@morgan-wrestling/db",
   "private": true,
   "type": "module",
+  "sideEffects": false,
   "exports": {
     ".": "./src/db/index.ts",
     "./schema": "./src/db/schema.ts",

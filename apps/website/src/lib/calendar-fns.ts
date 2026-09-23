@@ -48,8 +48,9 @@ export const subscribeUrl = (calendarId: string): string =>
  *
  * This is the only definition of "public" in the app, and every calendar read
  * goes through it — including the ones that also filter by id, so that guessing
- * the id of an internal calendar is not a way around the list. There are three
- * calendars in the database today and only one of them is referenced.
+ * the id of an internal calendar is not a way around the list, and including
+ * `sitemap-fns.ts`, so the sitemap cannot advertise a URL the route 404s.
+ * There are three calendars in the database today and only one is referenced.
  *
  * Expressed as two subqueries rather than a CTE because `ReadonlyDb` withholds
  * `with(...)`: the object drizzle returns from it carries its own `insert`,
@@ -58,7 +59,7 @@ export const subscribeUrl = (calendarId: string): string =>
 /** The two columns that hold a calendar id and therefore need this filter. */
 type CalendarIdColumn = typeof calendars.id | typeof calendarEvents.calendarId;
 
-const isPublicCalendar = (db: ReadonlyDb, column: CalendarIdColumn) =>
+export const isPublicCalendar = (db: ReadonlyDb, column: CalendarIdColumn) =>
 	or(
 		inArray(
 			column,

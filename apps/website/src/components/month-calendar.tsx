@@ -151,6 +151,20 @@ export const MonthCalendar = ({
  * `to='.'` keeps whichever calendar route is rendering this — the grid is on
  * both `/calendar` and `/calendar/$calendarId`, and only the search param
  * changes.
+ *
+ * ## Why `rel='nofollow'`
+ *
+ * Previous and next always go somewhere, so `?month=` is an unbounded corridor:
+ * a crawler that follows these walks it forever, and every step is a Worker
+ * invocation and a Turso query for a month that has never had an event in it.
+ * The pages themselves are fine to index — the point of putting the month in
+ * the URL was that each one is a real, cacheable, linkable address — so this
+ * asks crawlers not to *discover* months by walking, rather than asking them
+ * not to index the ones they are sent to. `sitemap.xml` lists `/calendar`
+ * itself and nothing beyond it, for the same reason.
+ *
+ * The "Today" link is deliberately left followable: it points at `/calendar`,
+ * which is already in the nav and the sitemap.
  */
 const MonthLink = ({
 	month,
@@ -164,6 +178,7 @@ const MonthLink = ({
 	<Link
 		to='.'
 		search={{ month }}
+		rel='nofollow'
 		aria-label={`${label}, ${monthLabel(month)}`}
 		className='rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground'
 	>

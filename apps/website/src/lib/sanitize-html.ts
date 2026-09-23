@@ -143,8 +143,12 @@ const NAMED_ENTITIES: Record<string, string> = {
  * One decoding pass, matching what a browser does to an attribute value. It
  * only has to be right enough to see through `&#106;avascript:` before
  * {@link safeUrl} looks at the scheme; unknown entities are left alone.
+ *
+ * Exported for `excerpt.ts`, which turns the same authored HTML into the plain
+ * text of a meta description and needs `&amp;` to come back as `&`. One entity
+ * table, so the two cannot disagree about what a string says.
  */
-const decodeEntities = (value: string) =>
+export const decodeEntities = (value: string) =>
 	value.replace(/&(#x[0-9a-f]+|#[0-9]+|[a-z]+);?/gi, (match, body: string) => {
 		if (body.startsWith('#')) {
 			const hex = body[1] === 'x' || body[1] === 'X';

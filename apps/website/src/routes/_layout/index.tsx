@@ -6,6 +6,9 @@ import { RichContent } from '#/components/rich-content';
 import { env } from '#/env';
 import type { EventScope } from '#/lib/calendar-fns';
 import { upcomingEventsQueryOptions } from '#/lib/calendar-opts';
+import { toDescription } from '#/lib/excerpt';
+import { HOME_PATH } from '#/lib/paths';
+import { seo } from '#/lib/seo';
 import {
 	siteContentQueryOptions,
 	siteQuickLinksQueryOptions,
@@ -20,12 +23,24 @@ const SCOPE: EventScope = { scope: 'site' };
 
 export const Route = createFileRoute('/_layout/')({
 	loader: async ({ context }) => {
-		await Promise.all([
+		const [site] = await Promise.all([
 			context.queryClient.ensureQueryData(siteContentQueryOptions),
 			context.queryClient.ensureQueryData(siteQuickLinksQueryOptions),
 			context.queryClient.ensureQueryData(upcomingEventsQueryOptions(SCOPE)),
 		]);
+
+		// The one thing `head` needs that the query cache cannot hand it: the
+		// description is derived, not stored. Returning it rather than deriving
+		// it again in `head` keeps the HTML parse on the server, once.
+		return { description: toDescription(site.homeContent) };
 	},
+	// No `title`, so the tab reads `Morgan Wrestling` and not
+	// `Morgan Wrestling | Morgan Wrestling`.
+	head: ({ loaderData }) =>
+		seo({
+			description: loaderData?.description || undefined,
+			path: HOME_PATH,
+		}),
 	component: Home,
 });
 

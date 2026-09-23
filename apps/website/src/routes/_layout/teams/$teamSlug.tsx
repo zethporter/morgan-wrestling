@@ -6,6 +6,8 @@ import {
 	Outlet,
 } from '@tanstack/react-router';
 import { QuickLinks } from '#/components/quick-links';
+import { toDescription } from '#/lib/excerpt';
+import { seo } from '#/lib/seo';
 import {
 	teamPageNavQueryOptions,
 	teamQueryOptions,
@@ -34,7 +36,20 @@ export const Route = createFileRoute('/_layout/teams/$teamSlug')({
 		]);
 
 		if (!team) throw notFound();
+
+		return { name: team.name, description: toDescription(team.homeContent) };
 	},
+	/**
+	 * Title and description for the whole team subtree, so `/teams/$teamSlug/`
+	 * below needs nothing but a canonical. No `path` here: this route has
+	 * children, and `links` are concatenated rather than deduped, so a canonical
+	 * at this level would follow every sub-page around (see `seo.ts`).
+	 */
+	head: ({ loaderData }) =>
+		seo({
+			title: loaderData?.name,
+			description: loaderData?.description || undefined,
+		}),
 	component: TeamLayout,
 	notFoundComponent: () => (
 		<div className='mx-auto w-full max-w-4xl px-4 py-12'>

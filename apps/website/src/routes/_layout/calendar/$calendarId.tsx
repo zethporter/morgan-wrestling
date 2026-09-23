@@ -10,6 +10,8 @@ import {
 	upcomingEventsQueryOptions,
 } from '#/lib/calendar-opts';
 import { monthSearchSchema } from '#/lib/month-search';
+import { calendarPath, monthPath } from '#/lib/paths';
+import { seo } from '#/lib/seo';
 
 /**
  * One calendar, with the link that matters: **Subscribe**, which hands the
@@ -37,7 +39,20 @@ export const Route = createFileRoute('/_layout/calendar/$calendarId')({
 		]);
 
 		if (!calendar) throw notFound();
+
+		return {
+			name: calendar.name,
+			path: monthPath(calendarPath(params.calendarId), deps.month),
+		};
 	},
+	head: ({ loaderData }) =>
+		seo({
+			title: loaderData?.name || undefined,
+			description: loaderData
+				? `Schedule and subscription link for ${loaderData.name || 'this calendar'}.`
+				: undefined,
+			path: loaderData?.path,
+		}),
 	component: CalendarPage,
 	notFoundComponent: () => (
 		<div className='mx-auto w-full max-w-4xl px-4 py-12'>

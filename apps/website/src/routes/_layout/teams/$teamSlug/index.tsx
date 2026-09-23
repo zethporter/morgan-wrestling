@@ -3,6 +3,8 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { EventList } from '#/components/event-list';
 import { RichContent } from '#/components/rich-content';
 import { upcomingEventsQueryOptions } from '#/lib/calendar-opts';
+import { teamPath } from '#/lib/paths';
+import { seo } from '#/lib/seo';
 import { teamQueryOptions } from '#/lib/team-opts';
 
 /**
@@ -23,6 +25,9 @@ export const Route = createFileRoute('/_layout/teams/$teamSlug/')({
 			),
 		]);
 	},
+	// Only the canonical: the team layout above already set the title and the
+	// description, and this route has nothing to add to either.
+	head: ({ params }) => seo({ path: teamPath(params.teamSlug) }),
 	component: TeamHome,
 });
 
