@@ -5,10 +5,11 @@ Cloudflare Workers that renders whatever the admin app has written into Turso �
 site home content, teams and their pages, quick links, and the calendar — and
 never writes a row back.
 
-> **Status: scaffolded (M1 + the M2 data layer).** The app builds, typechecks,
-> serves `/`, and redirects `/teams`. Content rendering starts at M3. This file
-> is the design and the build order — delete the "Milestones" section once the
-> app ships.
+> **Status: the home page is live (M1–M3).** The app builds, typechecks, tests,
+> and serves `/` with the real site content, the real quick links, and a header
+> nav driven by the team list. Teams, calendar, polish and deploy are still
+> ahead. This file is the design and the build order — delete the "Milestones"
+> section once the app ships.
 
 ---
 
@@ -91,8 +92,9 @@ everything auth- and mutation-shaped.
 | UI | `@morgan-wrestling/ui`, `@morgan-wrestling/styles` | Shared shadcn/base-ui components and the design tokens. |
 | Styling | Tailwind v4 + `@tailwindcss/typography` | Typography is **new** here — see §7. |
 | Env | `@t3-oss/env-core` + zod | Same shape as `apps/calendar/src/env.ts`, which is the minimal one. |
+| Sanitizing | `ultrahtml` | Its *parser*, not its sanitize transformer — see §7. |
 | Lint/format | Root Biome | Tabs, single quotes, sorted classes. Nothing app-local. |
-| Tests | Vitest + Testing Library | Loader/query-shape tests and a couple of render smoke tests. |
+| Tests | Vitest + Testing Library | `vitest.config.ts` is separate from `vite.config.ts`: the app config boots a Worker, and the units worth testing are plain modules. |
 
 ### Dependencies to add
 
@@ -113,6 +115,7 @@ everything auth- and mutation-shaped.
     "react": "*",
     "react-day-picker": "*",
     "react-dom": "*",
+    "ultrahtml": "*",
     "zod": "*"
   }
 }
@@ -302,9 +305,9 @@ plus `NOT NULL` on the column — a shared-schema change, so it belongs in
 ```mermaid
 flowchart TD
     ROOT["__root.tsx<br/>html shell, ThemeProvider, head/meta"]
-    LAY["_layout.tsx<br/>site header + team nav + footer<br/>loads: teams, active quick links"]
+    LAY["_layout.tsx<br/>site header + team nav + footer<br/>loads: teams"]
 
-    HOME["/  index.tsx<br/>settings.home_content<br/>+ quick links<br/>+ upcoming events"]
+    HOME["/  index.tsx<br/>settings.home_content<br/>+ active quick links<br/>+ upcoming events"]
     TEAMS["/teams  index.tsx<br/><b>301 → /</b><br/>no bare team index"]
     TEAM["/teams/$teamSlug<br/>team layout: page nav,<br/>team quick links"]
     TEAMHOME["/teams/$teamSlug/  index<br/>teams.home_content"]
@@ -324,6 +327,12 @@ flowchart TD
     CALS --> CAL
     LAY --> NF
 ```
+
+Quick links sit on the home page rather than in the layout chrome, because
+that is where the admin puts them: `apps/admin/.../home-page.tsx` edits them
+with `scope='site'` next to the home content, and the team ones live on the
+team page the same way. The layout loads only the team list, which is the one
+query every page needs.
 
 Plus two non-React responses:
 
@@ -441,14 +450,45 @@ Two things this needs:
 
 2. **Sanitize server-side.** The authors are trusted admins, so this is
    defense-in-depth rather than a live threat — but the site is anonymous and
-   cached, so a single bad paste would be served to everyone. Run the HTML
-   through a small allowlist sanitizer in the server function, before it
-   crosses to the client. Pick a Workers-compatible one (no DOM): evaluate
-   `ultrahtml/transformers/sanitize` or a hand-rolled allowlist over the tags
-   the Tiptap extension set can actually emit (`packages/ui/.../extensions`:
-   headings, blockquote, highlight, image, sub/sup, tables, text-align, plus
-   starter-kit). Whatever is chosen, it belongs in **one** helper —
-   `src/lib/sanitize-html.ts` — that every content-returning server fn calls.
+   cached, so a single bad paste would be served to everyone. `sanitizeHtml`
+   in `src/lib/sanitize-html.ts` is the one helper every content-returning
+   server fn calls, and it runs in the *server function*, so unsafe markup
+   never crosses to the client.
+
+### Why the sanitizer is hand-rolled over `ultrahtml`'s parser
+
+`ultrahtml` is the right parser for a Worker — no DOM, no dependencies, and it
+closes tags the author left open. Its bundled `transformers/sanitize` is **not**
+a security boundary, though. Probed against 1.7.0 with
+`allowElements: ['p','a']` and `allowAttributes: { href: ['a'] }`:
+
+| Input | Output | Why |
+| --- | --- | --- |
+| `<p onclick="alert(1)">hi</p>` | unchanged | `allowAttributes` only *keeps* listed attributes; an unlisted one falls through both branches and survives |
+| `<a href="javascript:alert(1)">` | unchanged | no scheme check anywhere |
+| `<p title='a" onmouseover="alert(1)'>` | `<p title="a" onmouseover="alert(1)">` | `attrsToString` interpolates values without escaping `"`, so a value containing a quote breaks out of the attribute |
+| `<P CLASS="X">upper</P>` | *empty* | names are matched case-sensitively, so uppercase markup is dropped wholesale |
+
+The first three are live XSS with an allowlist that looks correct. So we keep
+`parse` and walk the tree ourselves: elements and attributes are allowlisted by
+name (lowercased first), URLs are scheme-checked *after* entity decoding so
+`&#106;avascript:` is caught, `style` is narrowed to the `text-align` that
+TextAlign emits, and serialization escapes what it writes.
+
+Two things the allowlist has to keep, which a tighter one would break:
+
+- **`class`, everywhere.** The editor's styling *is* class attributes —
+  `packages/ui/.../extensions/headings.ts` and friends put Tailwind utilities
+  into the stored HTML. They resolve on this site because
+  `packages/styles/src/index.css` does `@source "../../../packages/ui/src"`,
+  so the utilities are in the website's bundle too (verified: `text-4xl`,
+  `list-disc`, `bg-amber-200` are all in `dist/client/assets/styles-*.css`).
+- **Tags no extension is registered for yet.** `img` and the table tags are
+  allowlisted even though the editor does not emit them today, so that turning
+  those extensions on in the admin does not silently blank existing pages.
+
+`src/lib/sanitize-html.test.ts` covers each row of that table plus the
+round-trip of real editor output; run it after any `ultrahtml` bump.
 
 ---
 
@@ -543,6 +583,7 @@ apps/website/
 ├── tsconfig.json              ✓ extends ../../tsconfig.base.json, "#/*" + ui path map
 ├── tsr.config.json            ✓
 ├── vite.config.ts             ✓ devtools, cloudflare, tailwind, tanstackStart, react
+├── vitest.config.ts           ✓ jsdom, no cloudflare/start plugins
 ├── wrangler.jsonc             ✓ name: morgan-wrestling-website
 ├── .env.example               ✓
 └── src/
@@ -553,19 +594,20 @@ apps/website/
     ├── db/
     │   └── index.ts           ✓ getDb(): ReadonlyDb
     ├── lib/
-    │   ├── sanitize-html.ts   M2
+    │   ├── sanitize-html.ts   ✓ + .test.ts
+    │   ├── quick-links.ts     ✓ QuickLink type + toQuickLinkHref, + .test.ts
     │   ├── slug.ts            M4  shared normalize() for team + page slugs
-    │   ├── site-fns.ts        M2  settings + quick links (GET)
-    │   ├── site-opts.ts       M2
-    │   ├── team-fns.ts        M4  teams, team pages, team quick links (GET)
-    │   ├── team-opts.ts       M4
+    │   ├── site-fns.ts        ✓ settings + active quick links (GET)
+    │   ├── site-opts.ts       ✓
+    │   ├── team-fns.ts        ✓ nav list; M4 adds pages + team quick links
+    │   ├── team-opts.ts       ✓
     │   ├── calendar-fns.ts    M5  calendars, event types, windowed events (GET)
     │   └── calendar-opts.ts   M5
     ├── components/
-    │   ├── site-header.tsx    ✓ placeholder — M3 drives the nav from the db
+    │   ├── site-header.tsx    ✓ nav driven by the team list
     │   ├── site-footer.tsx    ✓
-    │   ├── rich-content.tsx   M3  the one prose + dangerouslySetInnerHTML site
-    │   ├── quick-links.tsx    M3
+    │   ├── rich-content.tsx   ✓ the one prose + dangerouslySetInnerHTML site
+    │   ├── quick-links.tsx    ✓ + .test.tsx
     │   ├── event-list.tsx     M5
     │   └── month-calendar.tsx M5
     ├── integrations/
@@ -574,8 +616,8 @@ apps/website/
     │       └── devtools.tsx       ✓
     └── routes/
         ├── __root.tsx                       ✓
-        ├── _layout.tsx                      ✓
-        ├── _layout/index.tsx                ✓ placeholder
+        ├── _layout.tsx                      ✓ loads the team nav
+        ├── _layout/index.tsx                ✓ home content + quick links
         ├── _layout/teams/index.tsx          ✓ 301 → /
         ├── _layout/teams/$teamSlug.tsx      M4
         ├── _layout/teams/$teamSlug/index.tsx    M4
@@ -645,15 +687,20 @@ Each one ends at something runnable.
       passes Biome, serves a 200.
 - [x] **M1a — `/teams` redirect.** 301 to `/` from `beforeLoad`, verified
       against a running server.
-- [ ] **M2 — Read-only data layer.** `src/db/index.ts` with `ReadonlyDb` ✅
-      *(done — write-rejection probe in §4 passes)*; still to do:
-      `site-fns.ts` returning `settings` + active `quick_links`, and the
-      sanitizer helper.
-- [ ] **M3 — Home page.** Drive the header nav from the team list, and render
-      site home content + quick links at `/`. Real content end to end.
+- [x] **M2 — Read-only data layer.** `ReadonlyDb` (write-rejection probe in §4
+      passes), `site-fns.ts` returning `settings` + active `quick_links`, and
+      `sanitize-html.ts`.
+- [x] **M3 — Home page.** Header nav driven by the team list; site home content
+      and quick links rendered at `/`. Verified against the live database: the
+      nav lists the real teams, `settings.home_content` renders through
+      `prose`, and the quick link resolves to its external destination.
 - [ ] **M4 — Teams.** `/teams/$teamSlug` and `/teams/$teamSlug/$pageSlug`, with
       the slug resolution from §6 and `active` filtering. 404s for unknown or
       inactive slugs.
+      **Also swap the header's team `<a href>` back to a typed `Link`** —
+      `site-header.tsx` uses a plain anchor only because `Link` is typed
+      against the route tree and `/teams/$teamSlug` does not exist yet, so
+      those nav entries 404 until this milestone lands.
 - [ ] **M5 — Calendar.** `/calendar` and `/calendar/$calendarId` — month grid,
       upcoming list, subscribe link to the calendar worker.
 - [ ] **M6 — Polish.** `head`/meta per route (title, description, OG tags),
@@ -669,10 +716,15 @@ Each one ends at something runnable.
 
 Still open:
 
-1. **Sanitizer choice** — needs a Workers-compatible, DOM-free library or a
-   hand-rolled allowlist. Spike in M2; not blocking anything before then.
-2. **Slug column** — commit to option C in §6 now, or wait for a real
+1. **Slug column** — commit to option C in §6 now, or wait for a real
    collision? Defaulting to B (slugify at read time) until someone hits one.
+2. **Quick-link URLs have no scheme in the database.** `quick_links.url` is
+   free text in the admin and the row that exists today is
+   `trackwrestling.com`, which a browser reads as a *relative* path.
+   `toQuickLinkHref` prefixes `https://` when the first segment looks like a
+   hostname, which is a guess. The real fix is validating the URL in the
+   admin's quick-link form — a change in `apps/admin`, so it is filed here
+   rather than worked around further.
 
 Resolved:
 
@@ -682,6 +734,8 @@ Resolved:
 | Apex or `www`? | Apex is canonical; `www` 301s via a bulk redirect rule | §11 |
 | Which calendars are public? | Only those referenced by a site or team default | §8 |
 | What does `active = NULL` mean? | Hidden — every public query requires `active = true` | §5 |
+| Which sanitizer? | `ultrahtml`'s parser, our own allowlist walk — its sanitize transformer leaks `onclick`, `javascript:` and attribute breakouts | §7 |
+| Where do site quick links render? | The home page, matching the admin's `scope='site'` editor — not the layout chrome | §6 |
 
 ---
 
@@ -690,6 +744,7 @@ Resolved:
 ```bash
 cp .env.example .env    # the two read-only Turso values
 bun run dev             # http://localhost:3001
+bun run test            # vitest, no database needed
 ```
 
 **Known breakage:** `bun --bun run dev` (the command in the root `README.md`)
@@ -706,7 +761,7 @@ identically on the same machine, so it predates the website. Running Vite under
 Node works fine in the meantime:
 
 ```bash
-node ../../node_modules/.bun/vite@*/node_modules/vite/bin/vite.js dev --port 3001
+node ./node_modules/vite/bin/vite.js dev --port 3001
 ```
 
 `bun run build`, `bunx tsc --noEmit` and `bunx biome check` are all unaffected.
