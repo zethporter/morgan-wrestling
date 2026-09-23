@@ -1,4 +1,4 @@
-import { and, eq } from '@morgan-wrestling/db/sql';
+import { and, asc, desc, eq } from '@morgan-wrestling/db/sql';
 import { createServerFn } from '@tanstack/react-start';
 import { setResponseStatus } from '@tanstack/react-start/server';
 import { nanoid } from 'nanoid';
@@ -344,22 +344,41 @@ export const getTeamQuickLinks = createServerFn({ method: 'GET' })
 		}
 	});
 
-const insertTeamPageSchema = teamPageInsertSchema.omit({
-	id: true,
-	createdAt: true,
-	updatedAt: true,
-	updatedBy: true,
-	createdBy: true,
-});
+export const insertTeamPageSchema = teamPageInsertSchema
+	.omit({
+		id: true,
+		createdAt: true,
+		updatedAt: true,
+		updatedBy: true,
+		createdBy: true,
+	})
+	// Left off, the page is appended to the end of the team's page list.
+	.extend({ sequenceNumber: z.number().int().optional() });
+export type InsertTeamPageSchema = z.infer<typeof insertTeamPageSchema>;
+
 export const insertTeamPage = createServerFn({ method: 'POST' })
 	.validator(insertTeamPageSchema)
 	.handler(async ({ data }) => {
 		const session = await requirePermission({ teamPage: ['create'] });
 		const today = new Date();
-		return getDb()
+		const db = getDb();
+
+		let { sequenceNumber } = data;
+		if (sequenceNumber === undefined) {
+			const [last] = await db
+				.select({ sequenceNumber: teamPages.sequenceNumber })
+				.from(teamPages)
+				.where(eq(teamPages.teamId, data.teamId))
+				.orderBy(desc(teamPages.sequenceNumber))
+				.limit(1);
+			sequenceNumber = (last?.sequenceNumber ?? 0) + 1;
+		}
+
+		return db
 			.insert(teamPages)
 			.values({
 				...data,
+				sequenceNumber,
 				createdBy: session.user.id,
 				updatedBy: session.user.id,
 				createdAt: today,
@@ -373,15 +392,18 @@ export const insertTeamPage = createServerFn({ method: 'POST' })
 			});
 	});
 
+export const teamPageValuesSchema = teamPageUpdateSchema.omit({
+	id: true,
+	createdAt: true,
+	createdBy: true,
+	updatedAt: true,
+	updatedBy: true,
+});
+export type TeamPageValues = z.infer<typeof teamPageValuesSchema>;
+
 const updateTeamPageSchema = z.object({
 	id: z.number(),
-	values: teamPageUpdateSchema.omit({
-		id: true,
-		createdAt: true,
-		createdBy: true,
-		updatedAt: true,
-		updatedBy: true,
-	}),
+	values: teamPageValuesSchema,
 });
 export const updateTeamPage = createServerFn({ method: 'POST' })
 	.validator(updateTeamPageSchema)
@@ -403,7 +425,7 @@ export const updateTeamPage = createServerFn({ method: 'POST' })
 const deleteTeamPageSchema = z.object({
 	id: z.number(),
 });
-export const deleteTeamPage = createServerFn({ method: 'GET' })
+export const deleteTeamPage = createServerFn({ method: 'POST' })
 	.validator(deleteTeamPageSchema)
 	.handler(async ({ data }) => {
 		await requirePermission({ teamPage: ['delete'] });
@@ -431,9 +453,11 @@ export const getTeamPages = createServerFn({ method: 'GET' })
 				title: teamPages.title,
 				active: teamPages.active,
 				teamId: teamPages.teamId,
+				sequenceNumber: teamPages.sequenceNumber,
 			})
 			.from(teamPages)
-			.where(eq(teamPages.teamId, data.teamId));
+			.where(eq(teamPages.teamId, data.teamId))
+			.orderBy(asc(teamPages.sequenceNumber), asc(teamPages.id));
 	});
 
 const getTeamPageSchema = z.object({

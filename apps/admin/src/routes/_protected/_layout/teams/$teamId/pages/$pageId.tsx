@@ -2,6 +2,13 @@ import {
 	type RichTextValue,
 	toRichTextValue,
 } from '@morgan-wrestling/ui/components/text-editor/types';
+import { Button } from '@morgan-wrestling/ui/components/ui/button';
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from '@morgan-wrestling/ui/components/ui/dropdown-menu';
 import {
 	Empty,
 	EmptyDescription,
@@ -13,9 +20,16 @@ import { toast } from '@morgan-wrestling/ui/components/ui/toast';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { useServerFn } from '@tanstack/react-start';
-import { FileQuestionIcon } from 'lucide-react';
+import {
+	Edit2Icon,
+	EllipsisVerticalIcon,
+	FileQuestionIcon,
+	TrashIcon,
+} from 'lucide-react';
+import { useState } from 'react';
 import { ContentEditorForm } from '#/components/content-editor-form';
-import { updateTeamPage } from '#/lib/team-fns';
+import { TeamPageDialog } from '#/components/team-page-dialog';
+import { deleteTeamPage, updateTeamPage } from '#/lib/team-fns';
 import { teamPageQueryOptions } from '#/lib/teams-opts';
 
 export const Route = createFileRoute(
@@ -32,7 +46,10 @@ export const Route = createFileRoute(
 function RouteComponent() {
 	const { teamId, pageId: rawPageId } = Route.useParams();
 	const { queryClient } = Route.useRouteContext();
+	const navigate = Route.useNavigate();
 	const pageId = Number(rawPageId);
+
+	const [editSettings, setEditSettings] = useState(false);
 
 	const { data } = useSuspenseQuery(teamPageQueryOptions(pageId, teamId));
 	const page = data?.[0];
@@ -73,6 +90,31 @@ function RouteComponent() {
 		},
 	});
 
+	const dtp = useServerFn(deleteTeamPage);
+	const deletePage = useMutation({
+		mutationFn: async () => await dtp({ data: { id: pageId } }),
+		onMutate: () =>
+			toast.add({
+				type: 'loading',
+				description: 'Deleting page',
+				id: 'delete-page',
+			}),
+		onSuccess: () => {
+			toast.update('delete-page', {
+				type: 'success',
+				description: 'Page deleted',
+			});
+			navigate({ to: '/teams/$teamId', params: { teamId } });
+		},
+		onError: (e) =>
+			toast.update('delete-page', {
+				type: 'error',
+				description: `Failed to delete: ${e.message}`,
+			}),
+		onSettled: () =>
+			queryClient.invalidateQueries({ queryKey: ['team-pages', teamId] }),
+	});
+
 	if (!page) {
 		return (
 			<Empty className='h-full'>
@@ -90,11 +132,47 @@ function RouteComponent() {
 	}
 
 	return (
-		<ContentEditorForm
-			key={page.id}
-			title={page.title}
-			value={toRichTextValue(page.content, page.contentMetadata)}
-			onSave={(value) => savePageContent.mutate(value)}
-		/>
+		<>
+			<ContentEditorForm
+				key={page.id}
+				title={page.title}
+				description={
+					page.active ? undefined : 'Inactive — hidden from the public site.'
+				}
+				value={toRichTextValue(page.content, page.contentMetadata)}
+				onSave={(value) => savePageContent.mutate(value)}
+				actions={
+					<DropdownMenu>
+						<DropdownMenuTrigger
+							render={<Button variant='ghost' type='button' />}
+						>
+							<EllipsisVerticalIcon />
+						</DropdownMenuTrigger>
+						<DropdownMenuContent className='w-fit'>
+							<DropdownMenuItem onClick={() => setEditSettings(true)}>
+								<Edit2Icon /> Page Settings
+							</DropdownMenuItem>
+							<DropdownMenuItem
+								onClick={() => deletePage.mutate()}
+								variant='destructive'
+							>
+								<TrashIcon /> Delete Page
+							</DropdownMenuItem>
+						</DropdownMenuContent>
+					</DropdownMenu>
+				}
+			/>
+			<TeamPageDialog
+				open={editSettings}
+				onOpenChange={setEditSettings}
+				teamId={teamId}
+				page={{
+					id: page.id,
+					title: page.title,
+					sequenceNumber: page.sequenceNumber,
+					active: page.active,
+				}}
+			/>
+		</>
 	);
 }
