@@ -21,6 +21,7 @@ on:
         options:
           - admin
           - calendar
+          - website
 
 permissions:
   contents: read
@@ -55,6 +56,9 @@ jobs:
             calendar:
               - *shared
               - 'apps/calendar/**'
+            website:
+              - *shared
+              - 'apps/website/**'
 
       # paths-filter emits a JSON array of matched filter names, which feeds the
       # deploy matrix directly. `shared` is dropped: it is a fragment, not an app.
