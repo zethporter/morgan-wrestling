@@ -292,7 +292,7 @@ const EventBarLink = ({
 				gridRow: bar.lane + 2,
 			}}
 			className={cn(
-				'my-px mr-0.5 ml-0.5 flex items-center overflow-hidden rounded-sm border-current border-l-2 bg-current/15 px-1 text-[0.6875rem] transition-colors hover:bg-current/30',
+				'my-px mr-0.5 ml-0.5 flex items-center overflow-hidden rounded-r-sm border-current border-l-2 bg-current/15 px-1 text-[0.6875rem] transition-colors hover:bg-current/30',
 				eventColorClass(bar.event.eventTypeColor),
 				// A cut end is square and runs into the day border, so that a bar
 				// continuing across weeks does not read as two separate events.
