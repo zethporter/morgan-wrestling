@@ -71,7 +71,11 @@ function CalendarIndex() {
 				)}
 			</div>
 
-			<MonthCalendar month={month} events={monthEvents} />
+			<MonthCalendar
+				month={month}
+				events={monthEvents}
+				showCalendar={calendars.length > 1}
+			/>
 
 			<EventList
 				events={upcoming}

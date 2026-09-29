@@ -265,6 +265,107 @@ export const buildMonthGrid = <TEvent extends DatedEvent>({
 	);
 };
 
+/** One event's run through a single week of the grid. */
+export type EventBar<TEvent> = {
+	event: TEvent;
+	/** Where the bar starts in the week: 0 is Sunday, 6 is Saturday. */
+	column: number;
+	/** How many columns it covers, 1 to 7. */
+	span: number;
+	/** The event began before this week, so this end of the bar is a cut. */
+	continuesBefore: boolean;
+	/** It carries on into the next one. */
+	continuesAfter: boolean;
+	/** Which row of bars within the week it sits on, 0 being the top. */
+	lane: number;
+};
+
+export type MonthGridWeek<TEvent> = {
+	days: MonthGridDay<TEvent>[];
+	bars: EventBar<TEvent>[];
+	/** How many lanes the week needs — 0 when nothing happens in it. */
+	lanes: number;
+};
+
+/**
+ * The month's grid as weeks of days *and* the bars that run across them.
+ *
+ * A bar is one event clipped to one week: a tournament from Wednesday to the
+ * following Tuesday is two bars, not eight day-marks, because the calendar
+ * draws it as one span per row. {@link buildMonthGrid}'s per-day buckets are
+ * still what `days` holds — they are what tells a square it has something on
+ * it — so both views of the same events come out of one pass.
+ *
+ * Lanes are packed greedily, longest bar first: a week reads best with the
+ * tournament running through it on top and the single-day meets tucked under.
+ * Each lane tracks which of its seven columns are taken as a bitmask, and a bar
+ * takes the first lane with room for all of its columns. Because the ordering is
+ * the same every week, a long event usually keeps its lane from one row to the
+ * next — usually, not always, and nothing depends on it.
+ */
+export const buildMonthWeeks = <TEvent extends DatedEvent>({
+	month,
+	events,
+	today = civilToday(),
+}: {
+	month: CivilMonth;
+	events: readonly TEvent[];
+	today?: CivilDate;
+}): MonthGridWeek<TEvent>[] => {
+	// The first and last civil date of each event, once, rather than per week.
+	// Through `eventDates` so this shares its conventions: inclusive end, and a
+	// row whose end precedes its start is one day rather than nothing.
+	const spans = events.map((event) => {
+		const dates = eventDates(event);
+		const first = dates.at(0) ?? toCivilDate(event.startTime);
+		return { event, first, last: dates.at(-1) ?? first };
+	});
+
+	return buildMonthGrid({ month, events, today }).map((days) => {
+		const weekStart = days.at(0)?.date ?? '';
+		const weekEnd = days.at(-1)?.date ?? weekStart;
+
+		const clipped = spans
+			.filter(({ first, last }) => first <= weekEnd && last >= weekStart)
+			.map(({ event, first, last }) => {
+				const column =
+					first <= weekStart ? 0 : days.findIndex((day) => day.date === first);
+				const endColumn =
+					last >= weekEnd ? 6 : days.findIndex((day) => day.date === last);
+
+				return {
+					event,
+					column,
+					span: endColumn - column + 1,
+					continuesBefore: first < weekStart,
+					continuesAfter: last > weekEnd,
+				};
+			})
+			.sort(
+				(left, right) => right.span - left.span || left.column - right.column,
+			);
+
+		const laneMasks: number[] = [];
+		const bars = clipped.map((bar) => {
+			const columns = ((1 << bar.span) - 1) << bar.column;
+			let lane = laneMasks.findIndex((taken) => (taken & columns) === 0);
+			if (lane === -1) lane = laneMasks.push(0) - 1;
+			laneMasks[lane] = (laneMasks[lane] ?? 0) | columns;
+
+			return { ...bar, lane };
+		});
+
+		return {
+			days,
+			// Lane then column, so the DOM order matches the reading order.
+			bars: bars.sort(
+				(left, right) => left.lane - right.lane || left.column - right.column,
+			),
+			lanes: laneMasks.length,
+		};
+	});
+};
+
 /** `'2026-09-09'` → `'Wed, Sep 9'`, with the year only when it is not this one. */
 export const formatCivilDate = (
 	date: CivilDate,
