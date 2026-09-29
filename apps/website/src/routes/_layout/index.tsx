@@ -1,6 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { EventList } from '#/components/event-list';
+import { PageContainer, PageTitle } from '#/components/page-container';
 import { QuickLinks } from '#/components/quick-links';
 import { RichContent } from '#/components/rich-content';
 import { env } from '#/env';
@@ -52,12 +53,12 @@ function Home() {
 	);
 
 	return (
-		<div className='mx-auto flex w-full max-w-4xl flex-col gap-10 px-4 py-12'>
+		<PageContainer>
 			{site.homeContent ? (
 				<RichContent html={site.homeContent} />
 			) : (
 				<div>
-					<h1 className='font-bold text-3xl'>{env.VITE_APP_TITLE}</h1>
+					<PageTitle>{env.VITE_APP_TITLE}</PageTitle>
 					<p className='mt-2 text-muted-foreground'>
 						There is nothing on the home page yet.
 					</p>
@@ -77,6 +78,6 @@ function Home() {
 					</Link>
 				</div>
 			)}
-		</div>
+		</PageContainer>
 	);
 }

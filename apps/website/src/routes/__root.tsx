@@ -8,6 +8,7 @@ import {
 	Scripts,
 } from '@tanstack/react-router';
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools';
+import { PageContainer, PageTitle } from '#/components/page-container';
 import {
 	DOCUMENT_CACHE_CONTROL,
 	NOT_FOUND_CACHE_CONTROL,
@@ -101,8 +102,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
  */
 function NotFound() {
 	return (
-		<div className='mx-auto flex min-h-screen w-full max-w-4xl flex-col items-start justify-center gap-4 px-4 py-12'>
-			<h1 className='font-bold text-3xl'>Page not found</h1>
+		<PageContainer className='min-h-dvh items-start justify-center gap-4'>
+			<PageTitle>Page not found</PageTitle>
 			<p className='text-muted-foreground'>There is nothing at this address.</p>
 			<Link
 				to='/'
@@ -110,6 +111,6 @@ function NotFound() {
 			>
 				Go to the home page
 			</Link>
-		</div>
+		</PageContainer>
 	);
 }

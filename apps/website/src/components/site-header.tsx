@@ -1,6 +1,12 @@
+import {
+	Tabs,
+	TabsList,
+	TabsTrigger,
+} from '@morgan-wrestling/ui/components/ui/tabs';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { Link } from '@tanstack/react-router';
+import { Link, useLocation } from '@tanstack/react-router';
 import { env } from '#/env';
+import { CALENDAR_PATH, teamPath } from '#/lib/paths';
 import { teamNavQueryOptions } from '#/lib/team-opts';
 
 /**
@@ -12,36 +18,64 @@ import { teamNavQueryOptions } from '#/lib/team-opts';
  */
 export const SiteHeader = () => {
 	const { data: teams } = useSuspenseQuery(teamNavQueryOptions);
+	const { pathname } = useLocation();
+
+	// Same shadcn `Tabs`, same reasoning as the team page sub-nav (see
+	// `$teamSlug.tsx`): each trigger's `render` is a real `Link` so this keeps
+	// navigating and working with JavaScript off, and `value` is derived from
+	// the current pathname rather than `Tabs`' own click-tracking so the
+	// active tab is correct on the first server-rendered paint. `undefined`
+	// when the current page is neither the calendar nor a team page — no tab
+	// then, matching the old `activeProps` behaviour.
+	const isCalendar =
+		pathname === CALENDAR_PATH || pathname.startsWith(`${CALENDAR_PATH}/`);
+	const activeValue = isCalendar
+		? 'calendar'
+		: teams.find(
+				(team) =>
+					pathname === teamPath(team.slug) ||
+					pathname.startsWith(`${teamPath(team.slug)}/`),
+			)?.slug;
 
 	return (
 		<header className='border-border border-b'>
-			<nav className='mx-auto flex w-full max-w-4xl flex-wrap items-center gap-x-6 gap-y-2 px-4 py-4'>
+			{/* `max-w-6xl`, not `max-w-4xl`: the calendar pages are `PageContainer
+			    width='wide'` and the nav has to line up with the widest page, not
+			    the narrowest — see `RESPONSIVE.md` §3.1. */}
+			<nav className='mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-4 sm:flex-row sm:items-center sm:gap-x-6 sm:gap-y-2 sm:px-6 lg:px-8'>
 				<Link to='/' className='font-semibold text-lg'>
 					{env.VITE_APP_TITLE}
 				</Link>
-				<ul className='flex flex-wrap items-center gap-x-4 gap-y-1'>
-					<li>
-						<Link
-							to='/calendar'
-							activeProps={{ className: 'font-medium text-foreground' }}
-							className='text-muted-foreground text-sm transition-colors hover:text-foreground'
+				<Tabs value={activeValue}>
+					<TabsList
+						variant='default'
+						aria-label='Site'
+						className='bg-transparent -mx-4 h-auto w-full snap-x flex-nowrap justify-start overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:w-fit sm:overflow-visible sm:px-0'
+					>
+						<TabsTrigger
+							value='calendar'
+							className='snap-start coarse:py-2.5 data-active:shadow-xl data-active:border-primary'
+							render={<Link to='/calendar' />}
 						>
 							Calendar
-						</Link>
-					</li>
-					{teams.map((team) => (
-						<li key={team.id}>
-							<Link
-								to='/teams/$teamSlug'
-								params={{ teamSlug: team.slug }}
-								activeProps={{ className: 'font-medium text-foreground' }}
-								className='text-muted-foreground text-sm transition-colors hover:text-foreground'
+						</TabsTrigger>
+						{teams.map((team) => (
+							<TabsTrigger
+								key={team.id}
+								value={team.slug}
+								className='snap-start coarse:py-2.5 data-active:shadow-xl data-active:border-primary'
+								render={
+									<Link
+										to='/teams/$teamSlug'
+										params={{ teamSlug: team.slug }}
+									/>
+								}
 							>
 								{team.name}
-							</Link>
-						</li>
-					))}
-				</ul>
+							</TabsTrigger>
+						))}
+					</TabsList>
+				</Tabs>
 			</nav>
 		</header>
 	);

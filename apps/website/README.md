@@ -591,10 +591,13 @@ started last month on this month's first row.
 
 The calendar pages read from the same tables `apps/calendar` does. A visitor can:
 
-- see a month grid with per-day event dots coloured by
-  `calendar_event_types.color` (the `--calendar-*` tokens and the
+- see a month grid where each event is one bar spanning the days it covers,
+  coloured by `calendar_event_types.color` (the `--calendar-*` tokens and the
   `calendarColors` map in `packages/ui/src/components/calendar/calendar-utils.ts`
-  already exist for this),
+  are where the colour comes from — the bar wears the `text-calendar-*` class
+  and its fill and left edge borrow it through `currentColor`),
+- click a bar for the event's details, in a dialog or, with no JavaScript, in a
+  panel below the grid,
 - see an upcoming-events list with title, time, location, and type,
 - click **Subscribe** → `https://calendar.morganwrestling.org/<calendarId>/calendar.ics`.
 
@@ -620,8 +623,8 @@ with nothing under it tells a visitor less than no heading at all.
 `apps/admin/src/components/big-calendar.tsx` scaffolds a month grid on it. Both
 are *input* components: they hold a selection in React state and change month
 with buttons. This site has nothing to select and has to be readable with
-JavaScript off (§1), so `src/components/month-calendar.tsx` is a plain `<table>`
-and the month is `?month=YYYY-MM`, moved by links:
+JavaScript off (§1), so `src/components/month-calendar.tsx` is built from
+scratch and the month is `?month=YYYY-MM`, moved by links:
 
 ```
 $ curl -s 'localhost:3001/calendar?month=2026-12' | grep -o 'December 2026'
@@ -649,6 +652,43 @@ location: /calendar
 
 `apps/admin`'s scaffold is left alone, per the note above. If a month grid is
 ever wanted in both apps, promote a real one into `packages/ui` then.
+
+### Bars, not a table of dots
+
+The grid was a `<table>` with a coloured dot on each day an event touched. A bar
+that runs Wednesday to Saturday cannot be: no single element crosses `<td>`
+boundaries, and `colSpan` would mean lifting the bars into rows of their own,
+which takes the day borders with them. So each week is a seven-column CSS grid
+used twice — the day cells sit at `grid-row: 1 / -1` and draw the borders, the
+adjacent-month tint and the date number, and the bars are placed over them at
+`grid-column: <start> / span <n>`, one lane per row, painting on top because
+they come later in the DOM.
+
+`buildMonthWeeks` in `src/lib/calendar-month.ts` does the arithmetic: it clips
+each event to each week (so a nine-day tournament is two bars, not nine
+day-marks) and packs the bars into lanes longest-first, each lane tracking its
+seven columns as a bitmask. It is layered over `buildMonthGrid`, which still
+buckets events per day, so both views come out of one pass.
+
+Losing the table costs the weekday labels their header association, so they are
+`aria-hidden` and each bar says its own dates instead — the whole range once,
+which is better than a mark on each of four squares.
+
+### A bar is a link first and a dialog second
+
+Clicking a bar should open the event's details, and §1 says the page has to work
+with JavaScript off. So a bar is an `<a href='#event-<id>'>`, every event on the
+grid gets a server-rendered details panel below it, and the panels are
+`hidden target:block` — with no JavaScript the browser follows the link and
+`:target` reveals the panel in place. With JavaScript the click is intercepted
+(except a modified one, which is the browser's business) and the same
+`EventDetails` opens in a dialog. Nothing is fetched either way: the events are
+already on the page, and there is one copy of the details markup, not two.
+
+This is the first interactive component on the site — `useState`, and a
+`packages/ui` dialog. It stays inside §1 because the interaction is an
+enhancement of a link that already works, and it is still no writes and no
+`.ics` generation.
 
 ### Days, not instants
 

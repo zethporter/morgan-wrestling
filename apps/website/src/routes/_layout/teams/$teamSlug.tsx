@@ -1,12 +1,20 @@
+import {
+	Tabs,
+	TabsList,
+	TabsTrigger,
+} from '@morgan-wrestling/ui/components/ui/tabs';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import {
 	createFileRoute,
 	Link,
 	notFound,
 	Outlet,
+	useLocation,
 } from '@tanstack/react-router';
+import { PageContainer, PageTitle } from '#/components/page-container';
 import { QuickLinks } from '#/components/quick-links';
 import { toDescription } from '#/lib/excerpt';
+import { teamPagePath } from '#/lib/paths';
 import { seo } from '#/lib/seo';
 import {
 	teamPageNavQueryOptions,
@@ -52,17 +60,14 @@ export const Route = createFileRoute('/_layout/teams/$teamSlug')({
 		}),
 	component: TeamLayout,
 	notFoundComponent: () => (
-		<div className='mx-auto w-full max-w-4xl px-4 py-12'>
-			<h1 className='font-bold text-3xl'>Team not found</h1>
+		<PageContainer className='gap-0'>
+			<PageTitle>Team not found</PageTitle>
 			<p className='mt-2 text-muted-foreground'>
 				There is no team at this address. Pick one from the menu above.
 			</p>
-		</div>
+		</PageContainer>
 	),
 });
-
-const NAV_LINK_CLASS =
-	'text-muted-foreground text-sm transition-colors hover:text-foreground';
 
 function TeamLayout() {
 	const { teamSlug } = Route.useParams();
@@ -71,46 +76,60 @@ function TeamLayout() {
 	const { data: quickLinks } = useSuspenseQuery(
 		teamQuickLinksQueryOptions(teamSlug),
 	);
+	const { pathname } = useLocation();
 
 	// The loader has already 404'd an unknown slug; this is the narrowing.
 	if (!team) return null;
 
+	// `Tabs`/`TabsTrigger` are the same shadcn `Tabs` used everywhere else,
+	// with each trigger's `render` swapped for a real `Link` — these have to
+	// navigate to a distinct page, not switch a same-page panel, and the site
+	// works with JavaScript off. `value` is driven from the current pathname
+	// rather than left to `Tabs`' own click-tracking, so the active tab (and
+	// its `aria-selected`) is correct on the very first server-rendered paint.
+	const activeValue =
+		pages.find((page) => pathname === teamPagePath(teamSlug, page.slug))
+			?.slug ?? 'home';
+
 	return (
-		<div className='mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-12'>
+		<PageContainer>
 			<div className='flex flex-col gap-4'>
-				<h1 className='font-bold text-3xl'>{team.name}</h1>
+				<PageTitle>{team.name}</PageTitle>
 				{pages.length > 0 && (
-					<nav aria-label={`${team.name} pages`}>
-						<ul className='flex flex-wrap items-center gap-x-4 gap-y-1 border-border border-b pb-3'>
-							<li>
-								<Link
-									to='/teams/$teamSlug'
-									params={{ teamSlug }}
-									activeOptions={{ exact: true }}
-									activeProps={{ className: 'font-medium text-foreground' }}
-									className={NAV_LINK_CLASS}
-								>
-									Home
-								</Link>
-							</li>
+					<Tabs value={activeValue}>
+						<TabsList
+							variant='default'
+							aria-label={`${team.name} pages`}
+							className='bg-transparent -mx-4 h-auto w-full snap-x flex-nowrap justify-start overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:w-fit sm:overflow-visible sm:px-0'
+						>
+							<TabsTrigger
+								value='home'
+								className='snap-start coarse:py-2.5 data-active:shadow-xl data-active:border-primary'
+								render={<Link to='/teams/$teamSlug' params={{ teamSlug }} />}
+							>
+								Home
+							</TabsTrigger>
 							{pages.map((page) => (
-								<li key={page.id}>
-									<Link
-										to='/teams/$teamSlug/$pageSlug'
-										params={{ teamSlug, pageSlug: page.slug }}
-										activeProps={{ className: 'font-medium text-foreground' }}
-										className={NAV_LINK_CLASS}
-									>
-										{page.title}
-									</Link>
-								</li>
+								<TabsTrigger
+									key={page.id}
+									value={page.slug}
+									className='snap-start coarse:py-2.5 data-active:shadow-xl data-active:border-primary'
+									render={
+										<Link
+											to='/teams/$teamSlug/$pageSlug'
+											params={{ teamSlug, pageSlug: page.slug }}
+										/>
+									}
+								>
+									{page.title}
+								</TabsTrigger>
 							))}
-						</ul>
-					</nav>
+						</TabsList>
+					</Tabs>
 				)}
 			</div>
 			<Outlet />
 			<QuickLinks links={quickLinks} />
-		</div>
+		</PageContainer>
 	);
 }

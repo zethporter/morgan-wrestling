@@ -17,7 +17,7 @@ export const RichContent = ({
 
 	return (
 		<article
-			className={`prose prose-neutral dark:prose-invert max-w-none ${className ?? ''}`.trim()}
+			className={`prose-sm sm:prose lg:prose-lg prose-neutral dark:prose-invert max-w-none ${className ?? ''}`.trim()}
 			// Safe because `html` has been through `sanitizeHtml` in the server
 			// function that read it. This is the only `dangerouslySetInnerHTML` in
 			// the app; keep it that way, so there is one thing to audit.

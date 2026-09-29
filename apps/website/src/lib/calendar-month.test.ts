@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
 	buildMonthGrid,
+	buildMonthWeeks,
 	eventDates,
 	formatEventWhen,
 	isCivilMonth,
@@ -197,6 +198,93 @@ describe('buildMonthGrid', () => {
 		expect(days.filter((day) => day.isToday).map((day) => day.date)).toEqual([
 			'2026-09-23',
 		]);
+	});
+});
+
+describe('buildMonthWeeks', () => {
+	/** September 2026 runs Aug 30 – Oct 3, so week 1 is Sep 6 – Sep 12. */
+	const weeksOf = (events: (typeof TOURNAMENT)[]) =>
+		buildMonthWeeks({ month: '2026-09', events, today: '2026-09-23' });
+
+	/** All-day, midnight Mountain on both ends — what the admin stores. */
+	const allDay = (first: string, last = first) => ({
+		startTime: Date.parse(`${first}T06:00:00Z`),
+		endTime: Date.parse(`${last}T06:00:00Z`),
+		allDay: true,
+	});
+
+	it('makes one bar spanning the days an event covers', () => {
+		const [bar, ...rest] = weeksOf([TOURNAMENT])[1]?.bars ?? [];
+
+		expect(rest).toEqual([]);
+		// Wednesday the 9th through Saturday the 12th: four columns from column 3.
+		expect(bar).toMatchObject({
+			column: 3,
+			span: 4,
+			continuesBefore: false,
+			continuesAfter: false,
+			lane: 0,
+		});
+	});
+
+	it('cuts an event that crosses a week boundary into one bar per week', () => {
+		// Friday the 11th to Monday the 14th.
+		const weeks = weeksOf([allDay('2026-09-11', '2026-09-14')]);
+
+		expect(weeks[1]?.bars[0]).toMatchObject({
+			column: 5,
+			span: 2,
+			continuesBefore: false,
+			continuesAfter: true,
+		});
+		expect(weeks[2]?.bars[0]).toMatchObject({
+			column: 0,
+			span: 2,
+			continuesBefore: true,
+			continuesAfter: false,
+		});
+	});
+
+	it('gives overlapping events a lane each, the longest on top', () => {
+		const meet = allDay('2026-09-10');
+		// The short one first, to show the order is the packing's and not the
+		// caller's.
+		const week = weeksOf([meet, TOURNAMENT])[1];
+
+		expect(week?.lanes).toBe(2);
+		expect(week?.bars.map((bar) => [bar.event, bar.lane])).toEqual([
+			[TOURNAMENT, 0],
+			[meet, 1],
+		]);
+	});
+
+	it('shares a lane between events that do not overlap', () => {
+		const week = weeksOf([allDay('2026-09-07'), allDay('2026-09-11')])[1];
+
+		expect(week?.lanes).toBe(1);
+		expect(week?.bars.map((bar) => bar.column)).toEqual([1, 5]);
+	});
+
+	it('leaves a week with nothing in it barless', () => {
+		const weeks = weeksOf([TOURNAMENT]);
+
+		expect(weeks.map((week) => week.bars.length)).toEqual([0, 1, 0, 0, 0]);
+		expect(weeks.map((week) => week.lanes)).toEqual([0, 1, 0, 0, 0]);
+	});
+
+	it('draws an event on the adjacent-month days the grid shows', () => {
+		// The 30th of August is the first square of September's grid.
+		const weeks = weeksOf([allDay('2026-08-30', '2026-08-31')]);
+
+		expect(weeks[0]?.bars[0]).toMatchObject({ column: 0, span: 2 });
+	});
+
+	it('still buckets the events onto their days', () => {
+		const days = weeksOf([TOURNAMENT]).flatMap((week) => week.days);
+
+		expect(
+			days.filter((day) => day.events.length > 0).map((day) => day.date),
+		).toEqual(['2026-09-09', '2026-09-10', '2026-09-11', '2026-09-12']);
 	});
 });
 
