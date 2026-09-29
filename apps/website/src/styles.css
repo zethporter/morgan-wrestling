@@ -5,3 +5,22 @@
    container by `rich-content.tsx`. The admin app has no such surface, so this
    plugin is loaded here rather than in the shared styles package. */
 @plugin "@tailwindcss/typography";
+
+/* Touch-target sizing is a property of the input device, not the viewport —
+   a 1024px tablet needs the big targets and a 380px desktop window does not.
+   App-local rather than in `packages/styles`: the admin is a keyboard-and-
+   mouse tool and has no use for it. */
+@custom-variant coarse (@media (pointer: coarse));
+
+/* Tiptap output is authored by coaches in a wide editor and read on phones.
+   These are the two ways it escapes its container. */
+@layer components {
+	.prose :where(table) {
+		display: block;
+		overflow-x: auto;
+		max-width: 100%;
+	}
+	.prose :where(p, li, h1, h2, h3, h4, blockquote) {
+		overflow-wrap: anywhere;
+	}
+}

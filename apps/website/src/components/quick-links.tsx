@@ -33,7 +33,7 @@ export const QuickLinks = ({
 			>
 				{title}
 			</h2>
-			<ul className='mt-3 grid gap-2 sm:grid-cols-2'>
+			<ul className='mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3'>
 				{links.map((link) => {
 					const external = isExternal(link.url);
 					return (

@@ -50,8 +50,10 @@ export const EventDetails = ({
 						aria-hidden='true'
 						className='mt-0.5 size-3.5 shrink-0 text-muted-foreground'
 					/>
-					{/* Locations are free text in the admin and can be long. */}
-					<span className='break-all'>{event.location}</span>
+					{/* Locations are free text in the admin and can be long.
+					    `wrap-anywhere`, not `break-all`: this only breaks a word that
+					    genuinely does not fit, rather than every word. */}
+					<span className='wrap-anywhere'>{event.location}</span>
 				</p>
 			)}
 			{kind && (

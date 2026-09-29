@@ -120,7 +120,9 @@ export const MonthCalendar = ({
 							// empty search as a subset of `?month=2026-08` and calls it
 							// active; this makes the absent `month` part of the match.
 							activeOptions={{ explicitUndefined: true }}
-							className='rounded-md px-3 py-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground'
+							// `coarse:min-h-11`: WCAG 2.5.5's 44px floor, only where the
+							// pointer is a finger rather than a mouse.
+							className='inline-flex coarse:min-h-11 items-center rounded-md px-3 coarse:py-2.5 py-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground'
 						>
 							Today
 						</Link>
@@ -341,7 +343,9 @@ const MonthLink = ({
 		search={{ month }}
 		rel='nofollow'
 		aria-label={`${label}, ${monthLabel(month)}`}
-		className='rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground'
+		// `coarse:` sizing clears WCAG 2.5.5's 44px target floor on a touch
+		// screen without padding out the arrow on a mouse-driven one.
+		className='inline-flex coarse:min-h-11 coarse:min-w-11 items-center justify-center rounded-md p-2 text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground'
 	>
 		{children}
 	</Link>

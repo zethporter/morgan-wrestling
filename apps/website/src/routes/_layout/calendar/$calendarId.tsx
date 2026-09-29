@@ -3,6 +3,7 @@ import { createFileRoute, Link, notFound } from '@tanstack/react-router';
 import { RssIcon } from 'lucide-react';
 import { EventList } from '#/components/event-list';
 import { MonthCalendar } from '#/components/month-calendar';
+import { PageContainer, PageTitle } from '#/components/page-container';
 import { civilToday, monthOf } from '#/lib/calendar-month';
 import {
 	monthEventsQueryOptions,
@@ -55,8 +56,10 @@ export const Route = createFileRoute('/_layout/calendar/$calendarId')({
 		}),
 	component: CalendarPage,
 	notFoundComponent: () => (
-		<div className='mx-auto w-full max-w-4xl px-4 py-12'>
-			<h1 className='font-bold text-3xl'>Calendar not found</h1>
+		// `gap-0`: the children carry their own `mt-*` rhythm, so the container
+		// contributes only the width and padding, not a second gap on top.
+		<PageContainer className='gap-0'>
+			<PageTitle>Calendar not found</PageTitle>
 			<p className='mt-2 text-muted-foreground'>
 				There is no published calendar at this address.
 			</p>
@@ -66,7 +69,7 @@ export const Route = createFileRoute('/_layout/calendar/$calendarId')({
 			>
 				See the full calendar
 			</Link>
-		</div>
+		</PageContainer>
 	),
 });
 
@@ -90,8 +93,8 @@ function CalendarPage() {
 	if (!calendar) return null;
 
 	return (
-		<div className='mx-auto flex w-full max-w-4xl flex-col gap-10 px-4 py-12'>
-			<div className='flex flex-wrap items-end justify-between gap-3'>
+		<PageContainer>
+			<div className='flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between'>
 				<div>
 					{/* `exact`, or the router counts `/calendar` as active while we are
 					    on a child of it and marks this `aria-current="page"`. */}
@@ -102,15 +105,15 @@ function CalendarPage() {
 					>
 						All calendars
 					</Link>
-					<h1 className='font-bold text-3xl'>
-						{calendar.name || 'Untitled calendar'}
-					</h1>
+					<PageTitle>{calendar.name || 'Untitled calendar'}</PageTitle>
 				</div>
 				{/* A plain anchor: the destination is the calendar worker, on another
-				    origin, and handing the URL to a calendar app is the point. */}
+				    origin, and handing the URL to a calendar app is the point.
+				    Full-width and taller below `sm`, where it would otherwise wrap
+				    under the heading and sit small and left-aligned. */}
 				<a
 					href={calendar.subscribeUrl}
-					className='flex items-center gap-2 rounded-lg border border-border px-4 py-2 font-medium transition-colors hover:bg-accent hover:text-accent-foreground'
+					className='flex items-center justify-center gap-2 rounded-lg border border-border px-4 py-3 font-medium transition-colors hover:bg-accent hover:text-accent-foreground sm:w-auto sm:justify-start sm:py-2'
 				>
 					<RssIcon aria-hidden='true' className='size-4' />
 					Subscribe
@@ -123,6 +126,6 @@ function CalendarPage() {
 				events={upcoming}
 				emptyMessage='Nothing scheduled in the next year.'
 			/>
-		</div>
+		</PageContainer>
 	);
 }

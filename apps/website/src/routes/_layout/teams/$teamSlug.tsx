@@ -5,6 +5,7 @@ import {
 	notFound,
 	Outlet,
 } from '@tanstack/react-router';
+import { PageContainer, PageTitle } from '#/components/page-container';
 import { QuickLinks } from '#/components/quick-links';
 import { toDescription } from '#/lib/excerpt';
 import { seo } from '#/lib/seo';
@@ -52,12 +53,12 @@ export const Route = createFileRoute('/_layout/teams/$teamSlug')({
 		}),
 	component: TeamLayout,
 	notFoundComponent: () => (
-		<div className='mx-auto w-full max-w-4xl px-4 py-12'>
-			<h1 className='font-bold text-3xl'>Team not found</h1>
+		<PageContainer className='gap-0'>
+			<PageTitle>Team not found</PageTitle>
 			<p className='mt-2 text-muted-foreground'>
 				There is no team at this address. Pick one from the menu above.
 			</p>
-		</div>
+		</PageContainer>
 	),
 });
 
@@ -76,9 +77,9 @@ function TeamLayout() {
 	if (!team) return null;
 
 	return (
-		<div className='mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-12'>
+		<PageContainer>
 			<div className='flex flex-col gap-4'>
-				<h1 className='font-bold text-3xl'>{team.name}</h1>
+				<PageTitle>{team.name}</PageTitle>
 				{pages.length > 0 && (
 					<nav aria-label={`${team.name} pages`}>
 						<ul className='flex flex-wrap items-center gap-x-4 gap-y-1 border-border border-b pb-3'>
@@ -111,6 +112,6 @@ function TeamLayout() {
 			</div>
 			<Outlet />
 			<QuickLinks links={quickLinks} />
-		</div>
+		</PageContainer>
 	);
 }

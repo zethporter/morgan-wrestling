@@ -3,6 +3,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { RssIcon } from 'lucide-react';
 import { EventDot, EventList } from '#/components/event-list';
 import { MonthCalendar } from '#/components/month-calendar';
+import { PageContainer, PageTitle } from '#/components/page-container';
 import { env } from '#/env';
 import type { EventScope } from '#/lib/calendar-fns';
 import { civilToday, monthOf } from '#/lib/calendar-month';
@@ -60,9 +61,9 @@ function CalendarIndex() {
 	);
 
 	return (
-		<div className='mx-auto flex w-full max-w-4xl flex-col gap-10 px-4 py-12'>
+		<PageContainer>
 			<div>
-				<h1 className='font-bold text-3xl'>Calendar</h1>
+				<PageTitle>Calendar</PageTitle>
 				{calendars.length > 1 && (
 					<p className='mt-2 text-muted-foreground'>
 						Every published calendar, together. Pick one below to see it on its
@@ -93,9 +94,13 @@ function CalendarIndex() {
 					</h2>
 					<ul className='mt-3 flex flex-col divide-y divide-border'>
 						{calendars.map((calendar) => (
+							// `flex-col` below `sm`, not `flex-wrap`: an unplanned wrap put
+							// "Subscribe" directly under the name with the same weight and
+							// spacing the two normally share, so the pair read as one line
+							// of text rather than a name and its action.
 							<li
 								key={calendar.id}
-								className='flex flex-wrap items-center justify-between gap-2 py-3'
+								className='flex flex-col items-start gap-1.5 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-2'
 							>
 								<Link
 									to='/calendar/$calendarId'
@@ -119,6 +124,6 @@ function CalendarIndex() {
 					</ul>
 				</nav>
 			)}
-		</div>
+		</PageContainer>
 	);
 }
