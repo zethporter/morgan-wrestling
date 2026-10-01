@@ -18,9 +18,9 @@
     "db:pull": "bun --bun drizzle-kit pull"
   },
   "dependencies": {
-    "@better-auth/drizzle-adapter": "^1.7.4",
+    "@better-auth/drizzle-adapter": "^1.7.7",
     "@tursodatabase/serverless": "^1.4.0",
-    "better-auth": "^1.7.4",
+    "better-auth": "^1.7.7",
     "drizzle-kit": "1.0.0-rc.4",
     "drizzle-orm": "1.0.0-rc.4"
   },
